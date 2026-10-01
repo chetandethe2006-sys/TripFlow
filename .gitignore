@@ -1,0 +1,11 @@
+backend/target/
+*.class
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
