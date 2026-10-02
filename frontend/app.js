@@ -57,6 +57,20 @@ function renderBadge(status) {
     return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}"><span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-current"></span>${status}</span>`;
 }
 
+async function loadTripsFromBackend() {
+    try {
+        const trips = await getTrips();
+
+        state.trips = trips;
+
+        render();
+
+        console.log("Trips loaded from backend:", trips);
+    } catch (error) {
+        console.error("Failed to load trips from backend:", error);
+    }
+}
+
 function render() {
     const app = document.getElementById('app');
     if (!app) return;
@@ -377,32 +391,43 @@ function renderCreateTrip() {
     `;
 }
 
-window.handleCreateTrip = function(e) {
+window.handleCreateTrip = async function(e) {
     e.preventDefault();
+
     const id = 'TRP' + Math.floor(1000 + Math.random() * 9000);
+
     const driverId = document.getElementById('driver').value;
     const driverObj = state.drivers.find(d => d.id === driverId);
 
     const newTrip = {
-        id,
+        id: id,
         customer: document.getElementById('cust').value,
         customerEmail: document.getElementById('email').value,
         pickup: document.getElementById('pickup').value,
         destination: document.getElementById('dest').value,
         goods: document.getElementById('goods').value,
         quantity: document.getElementById('qty').value,
-        driverId,
+        driverId: driverId,
         driverName: driverObj ? driverObj.name : 'Unassigned',
         vehicleNumber: 'IL-04-AB-9876',
         status: 'Driver Assigned',
         date: new Date().toISOString().split('T')[0]
     };
 
-    state.trips.unshift(newTrip);
-    state.notifications.unshift({ id: 'NOT-' + Date.now(), text: `New trip ${id} created.`, time: 'Just now', read: false });
-    saveState();
-    navigate('trips');
-}
+    try {
+        const createdTrip = await createTrip(newTrip);
+
+        console.log("Trip created in backend:", createdTrip);
+
+        await loadTripsFromBackend();
+
+        navigate('trips');
+
+    } catch (error) {
+        console.error("Failed to create trip:", error);
+        alert("Failed to create trip.");
+    }
+};
 
 function renderTripDetails() {
     const trip = state.trips.find(t => t.id === state.selectedTripId);
@@ -433,13 +458,28 @@ function renderTripDetails() {
     `;
 }
 
-window.updateStatus = function(tripId, status) {
-    const trip = state.trips.find(t => t.id === tripId);
-    if (trip) {
-        trip.status = status;
-        state.notifications.unshift({ id: 'NOT-' + Date.now(), text: `Trip #${tripId} status changed to ${status}.`, time: 'Just now', read: false });
-        saveState();
+async function updateStatus(tripId, newStatus) {
+    try {
+        const trip = await getTripById(tripId);
+
+        if (!trip) {
+            alert("Trip not found.");
+            return;
+        }
+
+        trip.status = newStatus;
+
+        const updatedTrip = await updateTrip(tripId, trip);
+
+        console.log("Trip status updated in backend:", updatedTrip);
+
+        await loadTripsFromBackend();
+
         render();
+
+    } catch (error) {
+        console.error("Failed to update trip status:", error);
+        alert("Failed to update trip status.");
     }
 }
 
@@ -492,4 +532,5 @@ function renderSettings() {
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
     render();
+    loadTripsFromBackend();
 });
