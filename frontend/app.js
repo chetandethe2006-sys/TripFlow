@@ -73,6 +73,62 @@ async function loadTripsFromBackend() {
     }
 }
 
+async function loadDriversFromBackend() {
+    try {
+        const drivers = await apiGet("/drivers");
+
+        state.drivers = drivers;
+
+        render();
+
+        console.log("Drivers loaded from backend:", drivers);
+    } catch (error) {
+        console.error("Failed to load drivers from backend:", error);
+    }
+}
+
+async function loadCustomersFromBackend() {
+    try {
+        const customers = await apiGet("/customers");
+
+        state.customers = customers;
+
+        render();
+
+        console.log("Customers loaded from backend:", customers);
+    } catch (error) {
+        console.error("Failed to load customers from backend:", error);
+    }
+}
+
+async function loadVehiclesFromBackend() {
+    try {
+        const vehicles = await apiGet("/vehicles");
+
+        state.vehicles = vehicles;
+
+        render();
+
+        console.log("Vehicles loaded from backend:", vehicles);
+    } catch (error) {
+        console.error("Failed to load vehicles from backend:", error);
+    }
+}
+
+async function loadNotificationsFromBackend() {
+    try {
+        const notifications = await apiGet("/notifications");
+
+        state.notifications = notifications;
+
+        render();
+
+        console.log("Notifications loaded from backend:", notifications);
+    } catch (error) {
+        console.error("Failed to load notifications from backend:", error);
+    }
+}
+
 function render() {
     const app = document.getElementById('app');
     if (!app) return;
@@ -986,6 +1042,19 @@ function renderCreateTrip() {
                             <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style="font-size:18px">expand_more</span>
                         </div>
                     </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
+                            Assign Vehicle
+                        </label>
+
+                        <select id="vehicle" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            ${state.vehicles.map(v => `
+                                <option value="${v.id}">
+                                    ${v.number}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="pt-4">
@@ -1005,7 +1074,9 @@ window.handleCreateTrip = async function (e) {
     const id = 'TRP' + Math.floor(1000 + Math.random() * 9000);
 
     const driverId = document.getElementById('driver').value;
+    const vehicleId = document.getElementById('vehicle').value;
     const driverObj = state.drivers.find(d => d.id === driverId);
+    const vehicleObj = state.vehicles.find(v => v.id === vehicleId);
 
     const newTrip = {
         id: id,
@@ -1017,7 +1088,7 @@ window.handleCreateTrip = async function (e) {
         quantity: document.getElementById('qty').value,
         driverId: driverId,
         driverName: driverObj ? driverObj.name : 'Unassigned',
-        vehicleNumber: 'IL-04-AB-9876',
+        vehicleNumber: vehicleObj ? vehicleObj.number : 'Unassigned',
         status: 'Driver Assigned',
         date: new Date().toISOString().split('T')[0]
     };
@@ -1681,4 +1752,8 @@ function renderSettings() {
 window.addEventListener('DOMContentLoaded', () => {
     render();
     loadTripsFromBackend();
+    loadDriversFromBackend();
+    loadCustomersFromBackend();
+    loadVehiclesFromBackend();
+    loadNotificationsFromBackend();
 });
