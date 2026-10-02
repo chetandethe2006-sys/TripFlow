@@ -1,6 +1,6 @@
 // --- MOCK DATA & STATE ---
 let state = {
-    currentUser: (() => { try { return JSON.parse(localStorage.getItem('tf_user')); } catch(e) { localStorage.removeItem('tf_user'); return null; } })() || null,
+    currentUser: (() => { try { return JSON.parse(localStorage.getItem('tf_user')); } catch (e) { localStorage.removeItem('tf_user'); return null; } })() || null,
     trips: JSON.parse(localStorage.getItem('tf_trips')) || [
         { id: "TRP1024", customer: "Acme Logistics Corp", customerEmail: "logistics@acme.com", customerPhone: "+1 (555) 234-5678", pickup: "Warehouse A, Chicago, IL", destination: "Distribution Hub, Dallas, TX", goods: "Industrial Steel Pipes", quantity: "12 Pallets", pickupDate: "2026-06-01", expectedDelivery: "2026-06-04", driverId: "DRV-01", driverName: "Amit Sharma", vehicleNumber: "IL-04-AB-9876", status: "In Transit", notes: "Handle with care.", date: "2026-06-01" },
         { id: "TRP1023", customer: "Global Retailers Inc", customerEmail: "supply@globalretail.com", customerPhone: "+1 (555) 876-5432", pickup: "Port Terminal 4, Miami, FL", destination: "Retail Center, Atlanta, GA", goods: "Consumer Electronics", quantity: "25 Cartons", pickupDate: "2026-05-28", expectedDelivery: "2026-05-30", driverId: "DRV-02", driverName: "Rajesh Kumar", vehicleNumber: "FL-08-XY-4321", status: "Delivered", notes: "Direct handover.", date: "2026-05-28" },
@@ -45,17 +45,17 @@ window.navigate = navigate;
 
 function renderBadge(status) {
     const styles = {
-        'Created': 'bg-blue-50 text-blue-700 border-blue-200',
-        'Driver Assigned': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-        'Picked Up': 'bg-amber-50 text-amber-700 border-amber-200',
-        'In Transit': 'bg-purple-50 text-purple-700 border-purple-200',
-        'Delivered': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        'Cancelled': 'bg-rose-50 text-rose-700 border-rose-200',
-        'Available': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        'On Trip': 'bg-amber-50 text-amber-700 border-amber-200',
-        'Active': 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        'Created':         'bg-blue-500/15 text-blue-400 border-blue-500/20',
+        'Driver Assigned': 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20',
+        'Picked Up':       'bg-amber-500/15 text-amber-400 border-amber-500/20',
+        'In Transit':      'bg-purple-500/15 text-purple-400 border-purple-500/20',
+        'Delivered':       'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+        'Cancelled':       'bg-rose-500/15 text-rose-400 border-rose-500/20',
+        'Available':       'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+        'On Trip':         'bg-amber-500/15 text-amber-400 border-amber-500/20',
+        'Active':          'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
     };
-    const cls = styles[status] || 'bg-slate-50 text-slate-700 border-slate-200';
+    const cls = styles[status] || 'bg-slate-500/15 text-slate-400 border-slate-500/20';
     return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}"><span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-current"></span>${status}</span>`;
 }
 
@@ -92,7 +92,7 @@ function render() {
             ${renderSidebar()}
             <div class="flex-1 flex flex-col overflow-hidden">
                 ${renderNavbar()}
-                <main class="flex-1 overflow-y-auto p-8 bg-slate-50">
+                <main class="flex-1 overflow-y-auto p-6 bg-[#090D16]">
                     ${renderPageContent()}
                 </main>
             </div>
@@ -100,12 +100,12 @@ function render() {
     `;
 }
 
-window.goToLogin = function() {
+window.goToLogin = function () {
     state.showLogin = true;
     render();
 };
 
-window.goToLanding = function() {
+window.goToLanding = function () {
     state.showLogin = false;
     render();
 };
@@ -141,9 +141,9 @@ function initScrollAnimation() {
         }
         const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
         drawParams = {
-            dx: Math.round((canvas.width  - img.width  * ratio) / 2),
+            dx: Math.round((canvas.width - img.width * ratio) / 2),
             dy: Math.round((canvas.height - img.height * ratio) / 2),
-            dw: Math.round(img.width  * ratio),
+            dw: Math.round(img.width * ratio),
             dh: Math.round(img.height * ratio),
             iw: img.width,
             ih: img.height,
@@ -157,7 +157,7 @@ function initScrollAnimation() {
         if (!img || !drawParams) return;
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(img, 0, 0, drawParams.iw, drawParams.ih,
-                          drawParams.dx, drawParams.dy, drawParams.dw, drawParams.dh);
+            drawParams.dx, drawParams.dy, drawParams.dw, drawParams.dh);
     }
 
     // Single-frame loader with dedup check
@@ -165,7 +165,7 @@ function initScrollAnimation() {
         return new Promise((resolve) => {
             if (animationImages[index]) { resolve(animationImages[index]); return; }
             const img = new Image();
-            img.onload  = () => { animationImages[index] = img; resolve(img); };
+            img.onload = () => { animationImages[index] = img; resolve(img); };
             img.onerror = () => resolve(null);
             img.src = currentFrame(index);
         });
@@ -230,10 +230,10 @@ function initScrollAnimation() {
             pendingFrameIndex = Math.min(frameCount, Math.max(1, raw));
 
             if (scrollText) {
-                if      (fraction < 0.1) scrollText.textContent = "Warehouse A, Chicago, IL";
+                if (fraction < 0.1) scrollText.textContent = "Warehouse A, Chicago, IL";
                 else if (fraction < 0.5) scrollText.textContent = "In Transit...";
                 else if (fraction < 0.9) scrollText.textContent = "Approaching Destination";
-                else                     scrollText.textContent = "Distribution Hub, Dallas, TX";
+                else scrollText.textContent = "Distribution Hub, Dallas, TX";
             }
         }
 
@@ -553,32 +553,82 @@ function renderLandingPage() {
 
 function renderLogin() {
     return `
-        <div class="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative">
-            <button onclick="goToLanding()" class="absolute top-8 left-8 text-slate-400 hover:text-white flex items-center gap-2 font-semibold bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 transition-colors">
-                ← Back to Home
+        <div class="min-h-screen bg-[#090D16] flex items-center justify-center p-6 relative animate-fadeIn overflow-hidden">
+            <!-- Subtle Background Grid & Gradients -->
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')]"></div>
+            <div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+            <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+            <!-- Back to Home -->
+            <button onclick="goToLanding()" class="absolute top-6 left-6 md:top-8 md:left-8 text-slate-400 hover:text-white flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all z-20 backdrop-blur-sm">
+                <span class="material-symbols-outlined" style="font-size:18px">arrow_back</span>
+                Back to Home
             </button>
-            <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-8">
-                <div class="text-center mb-8">
-                    <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg shadow-blue-500/20">
-                        🚚
+
+            <!-- Login Container -->
+            <div class="w-full max-w-md bg-[#0F172A]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl relative z-10 transform transition-all">
+                <!-- Inner glow top edge -->
+                <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+
+                <div class="relative z-10">
+                    <!-- Brand Header -->
+                    <div class="flex flex-col items-center mb-10">
+                        <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-[0_0_30px_rgba(236,91,19,0.3)] mb-5">
+                            <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M4 4h16v4H14v12h-4V8H4V4z"/></svg>
+                        </div>
+                        <div class="flex items-center tracking-tight text-3xl mb-2">
+                            <span class="text-white font-bold">Trip</span>
+                            <span class="text-primary font-black">Flow</span>
+                        </div>
+                        <p class="text-sm text-slate-400 font-medium">Select your role to continue</p>
                     </div>
-                    <h1 class="text-2xl font-bold text-white tracking-tight">Elite TripFlow Portal</h1>
-                    <p class="text-sm text-slate-400 mt-1">Select your role to login</p>
-                </div>
-                <div class="space-y-4">
-                    <button onclick="loginAs('owner')" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all">
-                        🛡️ Login as Owner
-                    </button>
-                    <button onclick="loginAs('driver', 'DRV-01', 'Amit Sharma')" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all">
-                        👤 Login as Driver 
-                    </button>
+
+                    <!-- Role Options -->
+                    <div class="space-y-4">
+                        <button onclick="loginAs('owner')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                    <span class="material-symbols-outlined" style="font-size:24px">admin_panel_settings</span>
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Owner</p>
+                                    <p class="text-slate-500 text-xs mt-0.5">Manage fleet, routes & operations</p>
+                                </div>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
+                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
+                            </div>
+                        </button>
+                        
+                        <button onclick="loginAs('driver', 'DRV-01', 'Amit Sharma')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                    <span class="material-symbols-outlined" style="font-size:24px">directions_car</span>
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Driver</p>
+                                    <p class="text-slate-500 text-xs mt-0.5">View your assigned trips & tasks</p>
+                                </div>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
+                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="mt-8 text-center pt-6 border-t border-white/5">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined" style="font-size:14px">lock</span>
+                            Secure Access Required
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     `;
 }
 
-window.loginAs = function(role, id = 'OWNER', name = 'Admin Owner') {
+window.loginAs = function (role, id = 'OWNER', name = 'Admin Owner') {
     state.currentUser = { role, id, name };
     saveState();
     state.currentRoute = role === 'owner' ? 'dashboard' : 'driver_dashboard';
@@ -588,55 +638,61 @@ window.loginAs = function(role, id = 'OWNER', name = 'Admin Owner') {
 function renderSidebar() {
     const isOwner = state.currentUser.role === 'owner';
     const unread = state.notifications.filter(n => !n.read).length;
-    
+
     const ownerLinks = [
-        { route: 'dashboard', label: 'Dashboard', icon: '📊' },
-        { route: 'trips', label: 'Trips', icon: '📦' },
-        { route: 'drivers', label: 'Drivers', icon: '👥' },
-        { route: 'vehicles', label: 'Vehicles', icon: '🚙' },
-        { route: 'customers', label: 'Customers', icon: '🏢' },
-        { route: 'notifications', label: 'Notifications', icon: '🔔', badge: unread },
-        { route: 'settings', label: 'Settings', icon: '⚙️' }
+        { route: 'dashboard',     label: 'Dashboard',       icon: '<span class="material-symbols-outlined" style="font-size:18px">dashboard</span>' },
+        { route: 'trips',         label: 'Trips',           icon: '<span class="material-symbols-outlined" style="font-size:18px">local_shipping</span>' },
+        { route: 'drivers',       label: 'Drivers',         icon: '<span class="material-symbols-outlined" style="font-size:18px">group</span>' },
+        { route: 'vehicles',      label: 'Vehicles',        icon: '<span class="material-symbols-outlined" style="font-size:18px">directions_car</span>' },
+        { route: 'customers',     label: 'Customers',       icon: '<span class="material-symbols-outlined" style="font-size:18px">business</span>' },
+        { route: 'notifications', label: 'Notifications',   icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread },
+        { route: 'settings',      label: 'Settings',        icon: '<span class="material-symbols-outlined" style="font-size:18px">settings</span>' }
     ];
 
     const driverLinks = [
-        { route: 'driver_dashboard', label: 'My Assigned Trips', icon: '📍' },
-        { route: 'notifications', label: 'Notifications', icon: '🔔', badge: unread }
+        { route: 'driver_dashboard', label: 'My Assigned Trips', icon: '<span class="material-symbols-outlined" style="font-size:18px">route</span>' },
+        { route: 'notifications',    label: 'Notifications',     icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread }
     ];
 
     const links = isOwner ? ownerLinks : driverLinks;
 
     return `
-        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800">
-            <div class="h-16 flex items-center px-6 gap-3 border-b border-slate-800 bg-slate-950/50">
-                <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold">TF</div>
-                <h1 class="font-bold text-white text-lg">TripFlow</h1>
+        <aside class="w-64 bg-[#090D16] text-slate-300 flex flex-col border-r border-white/10 shrink-0">
+            <div class="h-16 flex items-center px-5 gap-3 border-b border-white/10">
+                <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30 shrink-0">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M4 4h16v4H14v12h-4V8H4V4z"/></svg>
+                </div>
+                <div class="flex items-center tracking-tight">
+                    <span class="text-white text-lg font-bold">Trip</span>
+                    <span class="text-primary text-lg font-black">Flow</span>
+                </div>
             </div>
-            <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/40">
-                <span class="text-xs uppercase tracking-wider text-slate-500 font-bold">Role: ${state.currentUser.role}</span>
-                <p class="text-sm font-medium text-white mt-0.5">${state.currentUser.name}</p>
+            <div class="px-5 py-3 border-b border-white/10">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">${state.currentUser.role}</p>
+                <p class="text-sm font-semibold text-white mt-0.5 truncate">${state.currentUser.name}</p>
             </div>
-            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
                 ${links.map(l => `
-                    <button onclick="navigate('${l.route}')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${state.currentRoute === l.route ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}">
+                    <button onclick="navigate('${l.route}')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${state.currentRoute === l.route ? 'bg-primary/15 text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5'}">
                         <div class="flex items-center gap-3">
-                            <span>${l.icon}</span>
+                            ${l.icon}
                             <span>${l.label}</span>
                         </div>
-                        ${l.badge > 0 ? `<span class="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">${l.badge}</span>` : ''}
+                        ${l.badge > 0 ? `<span class="bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none">${l.badge}</span>` : ''}
                     </button>
                 `).join('')}
             </nav>
-            <div class="p-4 border-t border-slate-800">
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10">
-                    🚪 Logout
+            <div class="p-3 border-t border-white/10">
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all">
+                    <span class="material-symbols-outlined" style="font-size:18px">logout</span>
+                    Logout
                 </button>
             </div>
         </aside>
     `;
 }
 
-window.logout = function() {
+window.logout = function () {
     state.currentUser = null;
     localStorage.removeItem('tf_user');
     state.showLogin = false;
@@ -644,21 +700,24 @@ window.logout = function() {
 }
 
 function renderNavbar() {
+    const unreadCount = state.notifications.filter(n => !n.read).length;
     return `
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm">
-            <div class="relative w-80">
-                <input type="text" placeholder="Search trips, drivers..." class="w-full pl-4 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+        <header class="h-16 bg-[#090D16] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
+            <div class="relative w-72">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 select-none pointer-events-none" style="font-size:18px">search</span>
+                <input type="text" placeholder="Search trips, drivers..." class="w-full pl-9 pr-4 py-2 text-sm bg-white/5 border border-white/10 rounded-xl text-slate-300 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all">
             </div>
-            <div class="flex items-center gap-4">
-                <button onclick="navigate('notifications')" class="p-2 text-slate-600 hover:bg-slate-100 rounded-xl relative">
-                    🔔
+            <div class="flex items-center gap-2">
+                <button onclick="navigate('notifications')" class="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                    <span class="material-symbols-outlined" style="font-size:20px">notifications</span>
+                    ${unreadCount > 0 ? `<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full"></span>` : ''}
                 </button>
-                <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
-                    <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+                <div class="flex items-center gap-3 pl-3 border-l border-white/10 ml-1">
+                    <div class="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center font-black text-sm shrink-0">
                         ${state.currentUser.name.charAt(0)}
                     </div>
                     <div>
-                        <p class="text-sm font-semibold text-slate-800 leading-none">${state.currentUser.name}</p>
+                        <p class="text-sm font-semibold text-white leading-none">${state.currentUser.name}</p>
                         <p class="text-xs text-slate-500 capitalize mt-0.5">${state.currentUser.role}</p>
                     </div>
                 </div>
@@ -668,7 +727,7 @@ function renderNavbar() {
 }
 
 function renderPageContent() {
-    switch(state.currentRoute) {
+    switch (state.currentRoute) {
         case 'dashboard': return renderOwnerDashboard();
         case 'trips': return renderTripsList();
         case 'create_trip': return renderCreateTrip();
@@ -684,73 +743,112 @@ function renderPageContent() {
 }
 
 function renderOwnerDashboard() {
-    const total = state.trips.length;
-    const active = state.trips.filter(t => ['Driver Assigned', 'Picked Up', 'In Transit'].includes(t.status)).length;
+    const total     = state.trips.length;
+    const active    = state.trips.filter(t => ['Driver Assigned', 'Picked Up', 'In Transit'].includes(t.status)).length;
     const delivered = state.trips.filter(t => t.status === 'Delivered').length;
-    const pending = state.trips.filter(t => t.status === 'Created').length;
+    const pending   = state.trips.filter(t => t.status === 'Created').length;
+
+    const statCards = [
+        { label: 'Total Trips',  value: total,     icon: 'route',          color: 'text-primary',     bg: 'bg-primary/10'     },
+        { label: 'Active Trips', value: active,    icon: 'local_shipping', color: 'text-purple-400',  bg: 'bg-purple-500/10'  },
+        { label: 'Delivered',    value: delivered, icon: 'task_alt',       color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+        { label: 'Pending',      value: pending,   icon: 'schedule',       color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
+    ];
+
+    const recentTrips = state.trips.slice(0, 5);
 
     return `
-        <div class="space-y-8 animate-fadeIn">
+        <div class="space-y-5 animate-fadeIn">
+
+            <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Owner Dashboard</h1>
-                    <p class="text-sm text-slate-500 mt-1">Operations and transport overview.</p>
+                    <h1 class="text-xl font-bold text-white">Owner Dashboard</h1>
+                    <p class="text-sm text-slate-400 mt-0.5">Operations and transport overview</p>
                 </div>
-                <button onclick="navigate('create_trip')" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-blue-600/25">
-                    + Create New Trip
+                <button onclick="navigate('create_trip')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25 hover:bg-orange-500 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined" style="font-size:18px">add</span>
+                    Create Trip
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div><p class="text-xs font-bold uppercase text-slate-500">Total Trips</p><h3 class="text-3xl font-bold mt-2">${total}</h3></div>
-                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl">📦</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div><p class="text-xs font-bold uppercase text-slate-500">Active Trips</p><h3 class="text-3xl font-bold mt-2">${active}</h3></div>
-                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-xl">⏳</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div><p class="text-xs font-bold uppercase text-slate-500">Completed</p><h3 class="text-3xl font-bold mt-2">${delivered}</h3></div>
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl">✅</div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div><p class="text-xs font-bold uppercase text-slate-500">Pending</p><h3 class="text-3xl font-bold mt-2">${pending}</h3></div>
-                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl">⚠️</div>
-                </div>
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                ${statCards.map(s => `
+                    <div class="bg-[#0F172A] border border-white/10 rounded-2xl p-5 flex items-center gap-4 hover:border-white/20 transition-colors">
+                        <div class="w-11 h-11 rounded-xl ${s.bg} flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined ${s.color}" style="font-size:20px">${s.icon}</span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">${s.label}</p>
+                            <p class="text-3xl font-black text-white leading-none mt-1">${s.value}</p>
+                        </div>
+                    </div>
+                `).join('')}
             </div>
 
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-slate-200 flex items-center justify-between">
-                    <h3 class="font-bold text-lg">Recent Trips</h3>
-                    <button onclick="navigate('trips')" class="text-sm font-semibold text-blue-600">View All</button>
+            <!-- Recent Trips -->
+            <div class="bg-[#0F172A] border border-white/10 rounded-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary" style="font-size:18px">receipt_long</span>
+                        <h3 class="font-bold text-white text-sm">Recent Trips</h3>
+                    </div>
+                    <button onclick="navigate('trips')" class="flex items-center gap-1 text-xs text-primary font-semibold hover:text-orange-400 transition-colors">
+                        View All
+                        <span class="material-symbols-outlined" style="font-size:14px">arrow_forward</span>
+                    </button>
                 </div>
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
-                            <th class="py-3 px-4">Trip ID</th>
-                            <th class="py-3 px-4">Customer</th>
-                            <th class="py-3 px-4">Destination</th>
-                            <th class="py-3 px-4">Driver</th>
-                            <th class="py-3 px-4">Status</th>
-                            <th class="py-3 px-4 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm">
-                        ${state.trips.slice(0, 5).map(t => `
-                            <tr class="hover:bg-slate-50">
-                                <td class="py-4 px-4 font-bold">${t.id}</td>
-                                <td class="py-4 px-4">${t.customer}</td>
-                                <td class="py-4 px-4 text-slate-500">${t.destination}</td>
-                                <td class="py-4 px-4">${t.driverName}</td>
-                                <td class="py-4 px-4">${renderBadge(t.status)}</td>
-                                <td class="py-4 px-4 text-right">
-                                    <button onclick="navigate('trip_details', '${t.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg">View</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+
+                ${recentTrips.length === 0 ? `
+                    <div class="py-14 flex flex-col items-center justify-center text-center">
+                        <span class="material-symbols-outlined text-slate-600" style="font-size:40px">local_shipping</span>
+                        <p class="text-slate-400 text-sm mt-3 font-medium">No trips yet</p>
+                        <p class="text-slate-600 text-xs mt-1">Create your first trip to get started</p>
+                        <button onclick="navigate('create_trip')" class="mt-4 px-4 py-2 rounded-xl bg-primary/15 text-primary text-xs font-bold hover:bg-primary/25 transition-colors">
+                            + Create Trip
+                        </button>
+                    </div>
+                ` : `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-white/5">
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Trip ID</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Customer</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden md:table-cell">Destination</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Driver</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                ${recentTrips.map(t => `
+                                    <tr class="hover:bg-white/5 transition-colors">
+                                        <td class="py-3.5 px-5">
+                                            <span class="text-primary font-mono text-xs font-bold">${t.id}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5">
+                                            <span class="text-sm text-white font-medium">${t.customer}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5 hidden md:table-cell">
+                                            <span class="text-sm text-slate-400">${t.destination}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5 hidden lg:table-cell">
+                                            <span class="text-sm text-slate-400">${t.driverName}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5">${renderBadge(t.status)}</td>
+                                        <td class="py-3.5 px-5 text-right">
+                                            <button onclick="navigate('trip_details', '${t.id}')" class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition-all">
+                                                View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `}
             </div>
         </div>
     `;
@@ -758,46 +856,75 @@ function renderOwnerDashboard() {
 
 function renderTripsList() {
     return `
-        <div class="space-y-6 animate-fadeIn">
+        <div class="space-y-5 animate-fadeIn pb-12">
+            <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Trip Management</h1>
-                    <p class="text-sm text-slate-500 mt-1">All transport schedules and dispatches.</p>
+                    <h1 class="text-xl font-bold text-white">Trip Management</h1>
+                    <p class="text-sm text-slate-400 mt-0.5">All transport schedules and dispatches</p>
                 </div>
-                <button onclick="navigate('create_trip')" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-blue-600/25">
-                    + Create Trip
+                <button onclick="navigate('create_trip')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25 hover:bg-orange-500 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined" style="font-size:18px">add</span>
+                    Create Trip
                 </button>
             </div>
 
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
-                            <th class="py-3.5 px-4">Trip ID</th>
-                            <th class="py-3.5 px-4">Customer</th>
-                            <th class="py-3.5 px-4">Pickup</th>
-                            <th class="py-3.5 px-4">Destination</th>
-                            <th class="py-3.5 px-4">Driver</th>
-                            <th class="py-3.5 px-4">Status</th>
-                            <th class="py-3.5 px-4 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm">
-                        ${state.trips.map(t => `
-                            <tr class="hover:bg-slate-50">
-                                <td class="py-4 px-4 font-bold">${t.id}</td>
-                                <td class="py-4 px-4 font-medium">${t.customer}</td>
-                                <td class="py-4 px-4 text-slate-500">${t.pickup}</td>
-                                <td class="py-4 px-4 text-slate-500">${t.destination}</td>
-                                <td class="py-4 px-4">${t.driverName}</td>
-                                <td class="py-4 px-4">${renderBadge(t.status)}</td>
-                                <td class="py-4 px-4 text-right">
-                                    <button onclick="navigate('trip_details', '${t.id}')" class="text-xs bg-slate-100 hover:bg-slate-200 font-semibold px-3 py-1.5 rounded-lg">View</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+            <!-- Trips Table Container -->
+            <div class="bg-[#0F172A] border border-white/10 rounded-2xl overflow-hidden shadow-sm">
+                ${state.trips.length === 0 ? `
+                    <div class="py-16 flex flex-col items-center justify-center text-center">
+                        <span class="material-symbols-outlined text-slate-600 mb-4" style="font-size:48px">local_shipping</span>
+                        <h3 class="text-lg font-bold text-white mb-1">No trips found</h3>
+                        <p class="text-slate-400 text-sm mb-6">You don't have any trips yet. Create one to get started.</p>
+                        <button onclick="navigate('create_trip')" class="px-5 py-2.5 rounded-xl bg-primary/15 text-primary text-sm font-bold hover:bg-primary/25 transition-colors flex items-center gap-2">
+                            <span class="material-symbols-outlined" style="font-size:18px">add</span>
+                            Create Trip
+                        </button>
+                    </div>
+                ` : `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-white/5">
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Trip ID</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Customer</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden md:table-cell">Pickup</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden md:table-cell">Destination</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider hidden lg:table-cell">Driver</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                    <th class="py-3 px-5 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                ${state.trips.map(t => `
+                                    <tr class="hover:bg-white/5 transition-colors">
+                                        <td class="py-3.5 px-5">
+                                            <span class="text-primary font-mono text-xs font-bold">${t.id}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5">
+                                            <span class="text-sm text-white font-medium">${t.customer}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5 hidden md:table-cell">
+                                            <span class="text-sm text-slate-400">${t.pickup}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5 hidden md:table-cell">
+                                            <span class="text-sm text-slate-400">${t.destination}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5 hidden lg:table-cell">
+                                            <span class="text-sm text-slate-400">${t.driverName}</span>
+                                        </td>
+                                        <td class="py-3.5 px-5">${renderBadge(t.status)}</td>
+                                        <td class="py-3.5 px-5 text-right">
+                                            <button onclick="navigate('trip_details', '${t.id}')" class="text-xs bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white font-semibold px-3 py-1.5 rounded-lg transition-all">
+                                                View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `}
             </div>
         </div>
     `;
@@ -805,55 +932,74 @@ function renderTripsList() {
 
 function renderCreateTrip() {
     return `
-        <div class="max-w-3xl mx-auto space-y-6 animate-fadeIn pb-12">
+        <div class="max-w-3xl mx-auto space-y-5 animate-fadeIn pb-12">
+            <!-- Header -->
             <div class="flex items-center gap-4">
-                <button onclick="navigate('trips')" class="p-2 bg-white border border-slate-200 rounded-xl">←</button>
-                <h1 class="text-2xl font-bold">Create New Trip</h1>
+                <button onclick="navigate('trips')" class="w-10 h-10 flex items-center justify-center bg-[#0F172A] border border-white/10 hover:border-white/20 text-slate-400 hover:text-white rounded-xl transition-all">
+                    <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
+                </button>
+                <div>
+                    <h1 class="text-xl font-bold text-white">Create New Trip</h1>
+                    <p class="text-sm text-slate-400 mt-0.5">Enter details to dispatch a new shipment</p>
+                </div>
             </div>
-            <form onsubmit="handleCreateTrip(event)" class="bg-white rounded-2xl border border-slate-200 p-8 space-y-6 shadow-sm">
-                <div class="grid grid-cols-2 gap-4">
+
+            <!-- Form Container -->
+            <form onsubmit="handleCreateTrip(event)" class="bg-[#0F172A] rounded-2xl border border-white/10 p-6 sm:p-8 space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Customer Name *</label>
-                        <input type="text" id="cust" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Customer Name *</label>
+                        <input type="text" id="cust" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Email *</label>
-                        <input type="email" id="email" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Pickup Location *</label>
-                        <input type="text" id="pickup" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Destination *</label>
-                        <input type="text" id="dest" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Email *</label>
+                        <input type="email" id="email" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Goods *</label>
-                        <input type="text" id="goods" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Pickup Location *</label>
+                        <input type="text" id="pickup" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Quantity *</label>
-                        <input type="text" id="qty" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Assign Driver</label>
-                        <select id="driver" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                            ${state.drivers.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
-                        </select>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Destination *</label>
+                        <input type="text" id="dest" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
                     </div>
                 </div>
-                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30">Submit Trip</button>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Goods *</label>
+                        <input type="text" id="goods" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Quantity *</label>
+                        <input type="text" id="qty" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Assign Driver</label>
+                        <div class="relative">
+                            <select id="driver" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all [&>option]:bg-[#0F172A]">
+                                ${state.drivers.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style="font-size:18px">expand_more</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" class="w-full py-3 bg-primary hover:bg-orange-500 text-white font-bold rounded-xl shadow-lg shadow-primary/25 active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined" style="font-size:20px">check_circle</span>
+                        Submit Trip
+                    </button>
+                </div>
             </form>
         </div>
     `;
 }
 
-window.handleCreateTrip = async function(e) {
+window.handleCreateTrip = async function (e) {
     e.preventDefault();
 
     const id = 'TRP' + Math.floor(1000 + Math.random() * 9000);
@@ -893,28 +1039,180 @@ window.handleCreateTrip = async function(e) {
 
 function renderTripDetails() {
     const trip = state.trips.find(t => t.id === state.selectedTripId);
-    if (!trip) return `<div>Trip not found</div>`;
+    if (!trip) return `
+        <div class="flex flex-col items-center justify-center h-[60vh] text-center">
+            <span class="material-symbols-outlined text-slate-600 text-6xl mb-4">search_off</span>
+            <h2 class="text-xl font-bold text-white">Trip Not Found</h2>
+            <p class="text-slate-400 mt-2">The trip you are looking for does not exist.</p>
+            <button onclick="navigate('trips')" class="mt-6 px-4 py-2 bg-primary hover:bg-orange-500 transition-colors text-white rounded-xl font-bold">Go Back</button>
+        </div>
+    `;
 
     const steps = ['Created', 'Driver Assigned', 'Picked Up', 'In Transit', 'Delivered'];
+    const currentStepIndex = steps.indexOf(trip.status);
 
     return `
-        <div class="max-w-4xl mx-auto space-y-6 animate-fadeIn">
-            <div class="flex items-center justify-between">
+        <div class="max-w-5xl mx-auto space-y-6 animate-fadeIn pb-12">
+            
+            <!-- Header Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
-                    <button onclick="navigate('trips')" class="p-2 bg-white border border-slate-200 rounded-xl">←</button>
-                    <div><h1 class="text-2xl font-bold">Trip #${trip.id}</h1>${renderBadge(trip.status)}</div>
+                    <button onclick="navigate('trips')" class="w-10 h-10 flex items-center justify-center bg-[#0F172A] border border-white/10 hover:border-white/20 text-slate-400 hover:text-white rounded-xl transition-all shadow-sm">
+                        <span class="material-symbols-outlined" style="font-size:20px">arrow_back</span>
+                    </button>
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h1 class="text-2xl font-bold text-white font-mono tracking-tight">${trip.id}</h1>
+                            ${renderBadge(trip.status)}
+                        </div>
+                        <p class="text-sm text-slate-400 mt-0.5">Created on ${trip.date || 'Unknown'}</p>
+                    </div>
                 </div>
-                <select onchange="updateStatus('${trip.id}', this.value)" class="px-4 py-2 border rounded-xl font-semibold text-sm">
-                    ${steps.map(s => `<option value="${s}" ${trip.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-                </select>
+                
+                <div class="flex items-center gap-3">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Update Status:</span>
+                    <div class="relative">
+                        <select onchange="updateStatus('${trip.id}', this.value)" class="w-48 px-4 py-2.5 bg-[#0F172A] border border-white/10 rounded-xl text-sm font-bold text-white appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all cursor-pointer [&>option]:bg-[#090D16] hover:border-white/20 shadow-sm">
+                            ${steps.map(s => `<option value="${s}" ${trip.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none" style="font-size:18px">arrow_drop_down</span>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><span class="text-xs text-slate-400 font-bold uppercase">Customer</span><p class="font-semibold">${trip.customer}</p></div>
-                    <div><span class="text-xs text-slate-400 font-bold uppercase">Driver</span><p class="font-semibold">${trip.driverName}</p></div>
-                    <div><span class="text-xs text-slate-400 font-bold uppercase">Pickup</span><p class="font-semibold">${trip.pickup}</p></div>
-                    <div><span class="text-xs text-slate-400 font-bold uppercase">Destination</span><p class="font-semibold">${trip.destination}</p></div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-[#0F172A] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-lg overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
+                <h3 class="text-sm font-bold text-white mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary" style="font-size:18px">timeline</span>
+                    Trip Progress
+                </h3>
+                <div class="relative flex justify-between items-center z-10 px-2 sm:px-6">
+                    <!-- Connecting line -->
+                    <div class="absolute left-0 right-0 mx-4 sm:mx-10 top-1/2 -translate-y-1/2 h-1 bg-white/5 rounded-full"></div>
+                    <div class="absolute left-0 mx-4 sm:mx-10 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full transition-all duration-1000 ease-in-out shadow-[0_0_10px_rgba(236,91,19,0.5)]" style="width: calc(${(currentStepIndex / (steps.length - 1)) * 100}% - 32px)"></div>
+                    
+                    ${steps.map((step, idx) => {
+                        const isCompleted = idx <= currentStepIndex;
+                        const isCurrent = idx === currentStepIndex;
+                        return `
+                            <div class="relative flex flex-col items-center group">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center relative z-10 transition-colors duration-500 ${isCompleted ? 'bg-primary shadow-[0_0_15px_rgba(236,91,19,0.4)]' : 'bg-[#090D16] border-2 border-white/10'}">
+                                    ${isCompleted ? `<span class="material-symbols-outlined text-white" style="font-size:16px">check</span>` : `<span class="w-2 h-2 rounded-full bg-white/20"></span>`}
+                                </div>
+                                <span class="absolute top-10 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-center w-20 sm:w-24 ${isCurrent ? 'text-primary' : (isCompleted ? 'text-white' : 'text-slate-500')}">${step}</span>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
+                <div class="h-8"></div><!-- Spacer for absolute text -->
+            </div>
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Route & Logistics -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Route -->
+                    <div class="bg-[#0F172A] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-lg">
+                        <div class="flex items-center gap-2 mb-6">
+                            <span class="material-symbols-outlined text-primary" style="font-size:20px">route</span>
+                            <h3 class="text-lg font-bold text-white">Route Details</h3>
+                        </div>
+                        
+                        <div class="relative pl-8 space-y-8 before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-white/10 before:rounded-full">
+                            <!-- Pickup -->
+                            <div class="relative">
+                                <div class="absolute -left-[37px] top-1 w-5 h-5 rounded-full border-[4px] border-[#0F172A] bg-primary z-10 shadow-[0_0_10px_rgba(236,91,19,0.5)]"></div>
+                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Pickup Location</p>
+                                <p class="text-base font-bold text-white">${trip.pickup || 'Not specified'}</p>
+                                ${trip.pickupDate ? `<p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5"><span class="material-symbols-outlined" style="font-size:14px">calendar_today</span>${trip.pickupDate}</p>` : ''}
+                            </div>
+                            
+                            <!-- Destination -->
+                            <div class="relative">
+                                <div class="absolute -left-[37px] top-1 w-5 h-5 rounded-full border-[4px] border-[#0F172A] bg-emerald-500 z-10"></div>
+                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Destination</p>
+                                <p class="text-base font-bold text-white">${trip.destination || 'Not specified'}</p>
+                                ${trip.expectedDelivery ? `<p class="text-xs text-slate-400 mt-1 flex items-center gap-1.5"><span class="material-symbols-outlined" style="font-size:14px">event_available</span>Expected: ${trip.expectedDelivery}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cargo -->
+                    <div class="bg-[#0F172A] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-lg">
+                        <div class="flex items-center gap-2 mb-6">
+                            <span class="material-symbols-outlined text-primary" style="font-size:20px">inventory_2</span>
+                            <h3 class="text-lg font-bold text-white">Cargo Information</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Goods</p>
+                                <p class="text-sm font-semibold text-white">${trip.goods || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Quantity</p>
+                                <p class="text-sm font-semibold text-white">${trip.quantity || 'N/A'}</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Notes & Instructions</p>
+                                <p class="text-sm text-slate-300 bg-[#090D16]/50 p-4 rounded-xl border border-white/5 leading-relaxed">${trip.notes || 'No additional notes provided for this shipment.'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Related Entities -->
+                <div class="space-y-6">
+                    <!-- Customer -->
+                    <div class="bg-[#0F172A] border border-white/10 rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center gap-2 mb-5">
+                            <span class="material-symbols-outlined text-primary" style="font-size:20px">domain</span>
+                            <h3 class="text-base font-bold text-white">Customer</h3>
+                        </div>
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-lg">
+                                ${(trip.customer || 'C').charAt(0)}
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">${trip.customer || 'Unknown'}</p>
+                                <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Client</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3 pt-4 border-t border-white/5">
+                            <div class="flex items-center gap-3 text-slate-300 hover:text-white transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined text-slate-500" style="font-size:16px">mail</span>
+                                <span class="text-xs font-medium">${trip.customerEmail || 'No email provided'}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-300 hover:text-white transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined text-slate-500" style="font-size:16px">call</span>
+                                <span class="text-xs font-medium">${trip.customerPhone || 'No phone provided'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Driver -->
+                    <div class="bg-[#0F172A] border border-white/10 rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center gap-2 mb-5">
+                            <span class="material-symbols-outlined text-primary" style="font-size:20px">badge</span>
+                            <h3 class="text-base font-bold text-white">Assigned Driver</h3>
+                        </div>
+                        <div class="flex items-center gap-3 mb-5">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg">
+                                ${(trip.driverName || 'U').charAt(0)}
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-white">${trip.driverName || 'Unassigned'}</p>
+                                <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">${trip.driverId || 'Pending'}</p>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-white/5 flex items-center gap-3 text-slate-300">
+                            <span class="material-symbols-outlined text-slate-500" style="font-size:16px">local_shipping</span>
+                            <span class="text-xs font-medium">${trip.vehicleNumber || 'Vehicle pending assignment'}</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     `;
@@ -947,48 +1245,436 @@ async function updateStatus(tripId, newStatus) {
 
 function renderDriverDashboard() {
     const myTrips = state.trips.filter(t => t.driverName === state.currentUser.name);
+    
     return `
-        <div class="max-w-4xl mx-auto space-y-6 animate-fadeIn">
-            <h1 class="text-2xl font-bold">Driver Portal</h1>
-            ${myTrips.length === 0 ? `<div class="bg-white p-8 rounded-2xl text-center">No assigned trips.</div>` : myTrips.map(t => `
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold text-lg">Trip #${t.id}</h3>
-                        ${renderBadge(t.status)}
+        <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-12">
+            
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Driver Portal</h1>
+                    <p class="text-sm text-slate-400 mt-1">Manage your assigned trips and update transport status</p>
+                </div>
+                <div class="flex items-center gap-3 bg-[#0F172A] border border-white/10 px-4 py-2.5 rounded-xl shadow-lg">
+                    <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center font-black text-white shadow-lg shadow-primary/30">
+                        ${state.currentUser.name.charAt(0)}
                     </div>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div><strong>Pickup:</strong> ${t.pickup}</div>
-                        <div><strong>Destination:</strong> ${t.destination}</div>
-                    </div>
-                    <div class="pt-4 border-t flex items-center justify-between">
-                        <span class="text-xs text-slate-500">Update Status:</span>
-                        <select onchange="updateStatus('${t.id}', this.value)" class="px-3 py-1.5 border rounded-lg text-sm font-semibold">
-                            <option value="Driver Assigned" ${t.status==='Driver Assigned'?'selected':''}>Driver Assigned</option>
-                            <option value="Picked Up" ${t.status==='Picked Up'?'selected':''}>Picked Up</option>
-                            <option value="In Transit" ${t.status==='In Transit'?'selected':''}>In Transit</option>
-                            <option value="Delivered" ${t.status==='Delivered'?'selected':''}>Delivered</option>
-                        </select>
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Driver</p>
+                        <p class="text-sm font-bold text-white leading-none mt-0.5">${state.currentUser.name}</p>
                     </div>
                 </div>
-            `).join('')}
+            </div>
+
+            <!-- Assigned Trips Section -->
+            <div class="space-y-5">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary" style="font-size:20px">route</span>
+                    <h2 class="text-lg font-bold text-white">Your Assigned Trips</h2>
+                    <span class="ml-2 bg-white/10 text-slate-300 text-xs px-2 py-0.5 rounded-full font-bold border border-white/5">
+                        ${myTrips.length}
+                    </span>
+                </div>
+
+                ${myTrips.length === 0 ? `
+                    <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-xl">
+                        <div class="w-20 h-20 bg-[#090D16] rounded-full flex items-center justify-center text-slate-600 mb-5 border border-white/5 shadow-inner">
+                            <span class="material-symbols-outlined" style="font-size:40px">beach_access</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">No active trips</h3>
+                        <p class="text-slate-400 text-sm max-w-sm">You currently have no assigned trips. Take a break or check back later when dispatch assigns a new route.</p>
+                    </div>
+                ` : `
+                    <div class="grid grid-cols-1 gap-6">
+                        ${myTrips.map(t => `
+                            <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-xl hover:border-white/20 hover:shadow-2xl transition-all relative overflow-hidden group">
+                                
+                                <!-- Decorative Accent -->
+                                <div class="absolute top-0 left-0 w-2 h-full bg-primary/80 group-hover:bg-primary transition-colors"></div>
+                                <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none transition-opacity group-hover:opacity-100 opacity-70"></div>
+
+                                <div class="relative z-10 flex flex-col lg:flex-row gap-8">
+                                    
+                                    <!-- Trip Info Left -->
+                                    <div class="flex-1 space-y-6">
+                                        <div class="flex flex-wrap justify-between items-start gap-4">
+                                            <div>
+                                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                                    <span class="material-symbols-outlined" style="font-size:14px">receipt_long</span>
+                                                    Trip ID
+                                                </p>
+                                                <h3 class="font-black text-xl text-white font-mono tracking-tight">${t.id}</h3>
+                                            </div>
+                                            <div>${renderBadge(t.status)}</div>
+                                        </div>
+                                        
+                                        <!-- Route Visualization Timeline -->
+                                        <div class="relative pl-6 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[3px] before:bg-white/5 before:rounded-full">
+                                            
+                                            <!-- Pickup -->
+                                            <div class="relative">
+                                                <div class="absolute -left-[29px] top-1 w-4 h-4 rounded-full border-[4px] border-[#0F172A] bg-primary z-10 shadow-[0_0_12px_rgba(236,91,19,0.5)]"></div>
+                                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Pickup Location</p>
+                                                <p class="text-sm font-bold text-white">${t.pickup}</p>
+                                            </div>
+                                            
+                                            <!-- Destination -->
+                                            <div class="relative">
+                                                <div class="absolute -left-[29px] top-1 w-4 h-4 rounded-full border-[4px] border-[#0F172A] bg-emerald-500 z-10"></div>
+                                                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Destination</p>
+                                                <p class="text-sm font-bold text-white">${t.destination}</p>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Action Right -->
+                                    <div class="lg:w-64 shrink-0 flex flex-col justify-end border-t lg:border-t-0 lg:border-l border-white/5 pt-6 lg:pt-0 lg:pl-8 mt-4 lg:mt-0">
+                                        <div class="space-y-3">
+                                            <label class="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                                <span class="material-symbols-outlined text-primary" style="font-size:16px">update</span>
+                                                Update Status
+                                            </label>
+                                            <div class="relative">
+                                                <select onchange="updateStatus('${t.id}', this.value)" class="w-full px-4 py-3 bg-[#090D16] border border-white/10 rounded-xl text-sm font-bold text-white appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all cursor-pointer [&>option]:bg-[#090D16] hover:bg-white/5">
+                                                    <option value="Driver Assigned" ${t.status === 'Driver Assigned' ? 'selected' : ''}>Driver Assigned</option>
+                                                    <option value="Picked Up" ${t.status === 'Picked Up' ? 'selected' : ''}>Picked Up</option>
+                                                    <option value="In Transit" ${t.status === 'In Transit' ? 'selected' : ''}>In Transit</option>
+                                                    <option value="Delivered" ${t.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                                </select>
+                                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none" style="font-size:20px">arrow_drop_down</span>
+                                            </div>
+                                            <p class="text-[10px] text-slate-500 font-medium text-center mt-2 flex items-center justify-center gap-1">
+                                                <span class="material-symbols-outlined" style="font-size:12px">sync</span>
+                                                Syncs directly with dispatch
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            </div>
         </div>
     `;
 }
 
 function renderDrivers() {
-    return `<div class="space-y-6 animate-fadeIn"><h1 class="text-2xl font-bold">Drivers</h1><div class="grid grid-cols-3 gap-6">${state.drivers.map(d => `<div class="bg-white p-6 rounded-2xl border shadow-sm"><h3 class="font-bold text-lg">${d.name}</h3><p class="text-xs text-slate-500">${d.phone}</p><div class="mt-4">${renderBadge(d.availability)}</div></div>`).join('')}</div></div>`;
+    return `
+        <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn pb-12">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Fleet Drivers</h1>
+                    <p class="text-sm text-slate-400 mt-1">Manage your driver roster and current availability</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ${state.drivers.map(d => `
+                    <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-white/20 hover:-translate-y-1 transition-all group relative overflow-hidden">
+                        
+                        <!-- Top glow -->
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[40px] pointer-events-none group-hover:bg-primary/10 transition-colors"></div>
+                        
+                        <div class="flex items-start justify-between mb-6 relative z-10">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-2xl bg-[#090D16] border border-white/5 flex items-center justify-center shadow-inner">
+                                    <span class="text-xl font-black text-slate-300 group-hover:text-primary transition-colors">${d.name.charAt(0)}</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-white group-hover:text-primary transition-colors">${d.name}</h3>
+                                    <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">${d.id}</p>
+                                </div>
+                            </div>
+                            ${renderBadge(d.availability)}
+                        </div>
+                        
+                        <div class="pt-4 border-t border-white/5 relative z-10">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-slate-600" style="font-size:14px">call</span>
+                                    Phone
+                                </span>
+                                <span class="text-sm font-semibold text-white">${d.phone}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
 }
 function renderVehicles() {
-    return `<div class="space-y-6 animate-fadeIn"><h1 class="text-2xl font-bold">Vehicles</h1><div class="grid grid-cols-3 gap-6">${state.vehicles.map(v => `<div class="bg-white p-6 rounded-2xl border shadow-sm"><h3 class="font-bold text-lg">${v.number}</h3><p class="text-xs text-slate-500">${v.type}</p><div class="mt-4">${renderBadge(v.availability)}</div></div>`).join('')}</div></div>`;
+    return `
+        <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn pb-12">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Fleet Vehicles</h1>
+                    <p class="text-sm text-slate-400 mt-1">Monitor transport inventory and deployment status</p>
+                </div>
+            </div>
+            
+            ${state.vehicles.length === 0 ? `
+                <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center shadow-xl">
+                    <span class="material-symbols-outlined text-slate-600 text-6xl mb-4">no_crash</span>
+                    <h3 class="text-xl font-bold text-white mb-2">No Vehicles Found</h3>
+                    <p class="text-slate-400 text-sm">Your fleet currently has no registered vehicles.</p>
+                </div>
+            ` : `
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    ${state.vehicles.map(v => `
+                        <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-white/20 hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col h-full">
+                            
+                            <!-- Ambient glow -->
+                            <div class="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-[50px] pointer-events-none group-hover:bg-primary/10 transition-colors"></div>
+                            
+                            <!-- Card Header -->
+                            <div class="flex items-start justify-between mb-6 relative z-10">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="material-symbols-outlined text-primary" style="font-size:20px">local_shipping</span>
+                                        <h3 class="font-bold text-lg text-white tracking-tight">${v.number}</h3>
+                                    </div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">${v.id}</p>
+                                </div>
+                                ${renderBadge(v.availability)}
+                            </div>
+                            
+                            <!-- Card Body -->
+                            <div class="space-y-4 flex-grow relative z-10">
+                                <!-- Type -->
+                                <div class="bg-[#090D16] rounded-xl p-4 border border-white/5">
+                                    <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Vehicle Type</p>
+                                    <p class="text-sm font-semibold text-white">${v.type}</p>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4">
+                                    <!-- Capacity -->
+                                    <div class="bg-[#090D16] rounded-xl p-4 border border-white/5">
+                                        <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1 flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-slate-400" style="font-size:14px">weight</span>
+                                            Capacity
+                                        </p>
+                                        <p class="text-sm font-semibold text-white">${v.capacity}</p>
+                                    </div>
+                                    
+                                    <!-- Assigned Driver -->
+                                    <div class="bg-[#090D16] rounded-xl p-4 border border-white/5">
+                                        <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1 flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-slate-400" style="font-size:14px">badge</span>
+                                            Driver
+                                        </p>
+                                        <p class="text-sm font-semibold text-white truncate" title="${v.driver}">${v.driver || 'Unassigned'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        </div>
+    `;
 }
+
 function renderCustomers() {
-    return `<div class="space-y-6 animate-fadeIn"><h1 class="text-2xl font-bold">Customers</h1><div class="grid grid-cols-3 gap-6">${state.customers.map(c => `<div class="bg-white p-6 rounded-2xl border shadow-sm"><h3 class="font-bold text-lg">${c.name}</h3><p class="text-xs text-slate-500">${c.email}</p><div class="mt-4">${renderBadge(c.status)}</div></div>`).join('')}</div></div>`;
+    return `
+        <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn pb-12">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Customers</h1>
+                    <p class="text-sm text-slate-400 mt-1">Manage client relationships and contact records</p>
+                </div>
+            </div>
+            
+            ${state.customers.length === 0 ? `
+                <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center shadow-xl">
+                    <span class="material-symbols-outlined text-slate-600 text-6xl mb-4">group_off</span>
+                    <h3 class="text-xl font-bold text-white mb-2">No Customers Found</h3>
+                    <p class="text-slate-400 text-sm">You have not added any clients yet.</p>
+                </div>
+            ` : `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${state.customers.map(c => `
+                        <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-white/20 hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col h-full">
+                            
+                            <!-- Ambient glow -->
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-[40px] pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
+                            
+                            <div class="flex items-start justify-between mb-6 relative z-10">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shadow-inner">
+                                        <span class="text-lg font-black text-blue-400">${c.name.charAt(0)}</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-lg text-white truncate max-w-[150px]" title="${c.name}">${c.name}</h3>
+                                        <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">${c.id}</p>
+                                    </div>
+                                </div>
+                                ${renderBadge(c.status)}
+                            </div>
+                            
+                            <div class="space-y-4 flex-grow relative z-10">
+                                <div class="bg-[#090D16] rounded-xl p-4 border border-white/5 space-y-3">
+                                    <div class="flex items-center gap-3 text-slate-300">
+                                        <span class="material-symbols-outlined text-slate-500" style="font-size:16px">mail</span>
+                                        <span class="text-xs font-medium truncate" title="${c.email}">${c.email}</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-slate-300">
+                                        <span class="material-symbols-outlined text-slate-500" style="font-size:16px">call</span>
+                                        <span class="text-xs font-medium">${c.phone}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        </div>
+    `;
 }
 function renderNotifications() {
-    return `<div class="max-w-3xl mx-auto space-y-4 animate-fadeIn"><h1 class="text-2xl font-bold">Notifications</h1><div class="bg-white rounded-2xl border divide-y">${state.notifications.map(n => `<div class="p-4 flex items-center justify-between text-sm"><span>${n.text}</span><span class="text-xs text-slate-400">${n.time}</span></div>`).join('')}</div></div>`;
+    return `
+        <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-12">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Notifications</h1>
+                    <p class="text-sm text-slate-400 mt-1">Updates and alerts regarding your trips and fleet</p>
+                </div>
+            </div>
+
+            ${state.notifications.length === 0 ? `
+                <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center shadow-xl">
+                    <div class="w-16 h-16 rounded-2xl bg-[#090D16] border border-white/5 flex items-center justify-center text-slate-600 mb-5 shadow-inner">
+                        <span class="material-symbols-outlined" style="font-size:32px">notifications_off</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">You're all caught up!</h3>
+                    <p class="text-slate-400 text-sm">You have no new notifications at this time.</p>
+                </div>
+            ` : `
+                <div class="bg-[#0F172A] border border-white/10 rounded-3xl shadow-xl overflow-hidden relative">
+                    <!-- Ambient glow top right -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[50px] pointer-events-none"></div>
+
+                    <div class="divide-y divide-white/5 relative z-10">
+                        ${state.notifications.map(n => `
+                            <div class="p-6 transition-colors hover:bg-white/5 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.read ? 'bg-[#090D16] text-slate-500 border border-white/5' : 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(236,91,19,0.2)]'}">
+                                        <span class="material-symbols-outlined" style="font-size:20px">
+                                            ${n.text.toLowerCase().includes('status') ? 'timeline' : n.text.toLowerCase().includes('completed') ? 'check_circle' : 'notifications'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm ${n.read ? 'text-slate-400' : 'text-white font-bold'}">${n.text}</p>
+                                        <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                            <span class="material-symbols-outlined" style="font-size:12px">schedule</span>
+                                            ${n.time}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                ${!n.read ? `
+                                    <div class="shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-center mt-2 sm:mt-0">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(236,91,19,0.8)]"></span>
+                                        <span class="text-[9px] uppercase font-bold text-primary tracking-wider mt-2 sm:block hidden">New</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `}
+        </div>
+    `;
 }
 function renderSettings() {
-    return `<div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl border shadow-sm"><h1 class="text-2xl font-bold mb-4">Settings</h1><p class="text-sm text-slate-600">Company Name: TripFlow Logistics Ltd.</p></div>`;
+    return `
+        <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-12">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">System Settings</h1>
+                    <p class="text-sm text-slate-400 mt-1">Platform configuration and company details</p>
+                </div>
+            </div>
+
+            <div class="bg-[#0F172A] border border-white/10 rounded-3xl shadow-xl overflow-hidden relative">
+                <!-- Ambient glow top right -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
+                
+                <div class="p-8 sm:p-10 relative z-10 space-y-10">
+                    
+                    <!-- Company Info Section -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center border border-primary/20">
+                                <span class="material-symbols-outlined" style="font-size:20px">corporate_fare</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white tracking-tight">Company Details</h3>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Registered Entity</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#090D16] rounded-2xl p-6 border border-white/5 space-y-6">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company Name</p>
+                                <p class="text-lg font-bold text-white">TripFlow Logistics Ltd.</p>
+                            </div>
+                            
+                            <div class="p-4 bg-primary/10 border border-primary/20 rounded-xl flex items-start gap-3">
+                                <span class="material-symbols-outlined text-primary shrink-0" style="font-size:20px">info</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-primary">Configuration locked</h4>
+                                    <p class="text-xs text-primary/80 mt-1">Company configuration and advanced administrative settings are currently managed via the backend database. A self-service portal is planned for a future release.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Current Session Details -->
+                    <section>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/20">
+                                <span class="material-symbols-outlined" style="font-size:20px">shield_person</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white tracking-tight">Active Session</h3>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Current Login Data</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#090D16] rounded-2xl p-6 border border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined" style="font-size:14px">person</span>
+                                    Active User
+                                </p>
+                                <p class="text-base font-bold text-white">${state.currentUser?.name || 'Unknown'}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined" style="font-size:14px">admin_panel_settings</span>
+                                    Permission Role
+                                </p>
+                                <p class="text-base font-bold text-white capitalize">${state.currentUser?.role || 'User'}</p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined" style="font-size:14px">fingerprint</span>
+                                    Session ID
+                                </p>
+                                <p class="text-sm text-slate-400 font-mono tracking-tight">${state.currentUser?.id || '---'}</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // Initialize on load

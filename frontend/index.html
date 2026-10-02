@@ -1,57 +1,64 @@
 <!DOCTYPE html>
 <html class="scroll-smooth" lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TripFlow | Autonomous Precision for Next-Gen Logistics</title>
-    <!-- Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              colors: {
-                "primary": "#ec5b13",
-                "background-light": "#f8f6f6",
-                "background-dark": "#221610",
-              },
-              fontFamily: {
-                "display": ["Public Sans", "sans-serif"],
-                "mono": ["JetBrains Mono", "monospace"]
-              },
-            },
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripFlow | Autonomous Precision for Next-Gen Logistics</title>
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#ec5b13",
+            "background-light": "#f8f6f6",
+            "background-dark": "#221610",
           },
-        }
-    </script>
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+          fontFamily: {
+            "display": ["Public Sans", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          },
+        },
+      },
+    }
+  </script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-50 text-slate-900 font-display antialiased selection:bg-primary selection:text-white overflow-x-hidden">
 
-    <div id="app">
-        <div class="h-screen flex items-center justify-center text-slate-500 font-medium">
-            Loading TripFlow...
-        </div>
+<body
+  class="bg-slate-50 text-slate-900 font-display antialiased selection:bg-primary selection:text-white overflow-x-hidden">
+
+  <div id="app">
+    <div class="h-screen flex items-center justify-center text-slate-500 font-medium">
+      Loading TripFlow...
     </div>
-    <!-- JavaScript Modules -->
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/trips.js"></script>
-    <script src="js/drivers.js"></script>
-    <script src="js/vehicles.js"></script>
-    <script src="js/customers.js"></script>
-    <script src="js/notifications.js"></script>
+  </div>
+  <!-- JavaScript Modules -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/trips.js"></script>
+  <script src="js/drivers.js"></script>
+  <script src="js/vehicles.js"></script>
+  <script src="js/customers.js"></script>
+  <script src="js/notifications.js"></script>
 
 
-    <!-- Main Application -->
-    <script src="app.js"></script>
-    
-    
+  <!-- Main Application -->
+  <script src="app.js"></script>
+
+
 </body>
+
 </html>
