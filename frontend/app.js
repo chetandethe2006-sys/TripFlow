@@ -45,15 +45,15 @@ window.navigate = navigate;
 
 function renderBadge(status) {
     const styles = {
-        'Created':         'bg-blue-500/15 text-blue-400 border-blue-500/20',
+        'Created': 'bg-blue-500/15 text-blue-400 border-blue-500/20',
         'Driver Assigned': 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20',
-        'Picked Up':       'bg-amber-500/15 text-amber-400 border-amber-500/20',
-        'In Transit':      'bg-purple-500/15 text-purple-400 border-purple-500/20',
-        'Delivered':       'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-        'Cancelled':       'bg-rose-500/15 text-rose-400 border-rose-500/20',
-        'Available':       'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-        'On Trip':         'bg-amber-500/15 text-amber-400 border-amber-500/20',
-        'Active':          'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
+        'Picked Up': 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+        'In Transit': 'bg-purple-500/15 text-purple-400 border-purple-500/20',
+        'Delivered': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+        'Cancelled': 'bg-rose-500/15 text-rose-400 border-rose-500/20',
+        'Available': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+        'On Trip': 'bg-amber-500/15 text-amber-400 border-amber-500/20',
+        'Active': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
     };
     const cls = styles[status] || 'bg-slate-500/15 text-slate-400 border-slate-500/20';
     return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}"><span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-current"></span>${status}</span>`;
@@ -696,18 +696,18 @@ function renderSidebar() {
     const unread = state.notifications.filter(n => !n.read).length;
 
     const ownerLinks = [
-        { route: 'dashboard',     label: 'Dashboard',       icon: '<span class="material-symbols-outlined" style="font-size:18px">dashboard</span>' },
-        { route: 'trips',         label: 'Trips',           icon: '<span class="material-symbols-outlined" style="font-size:18px">local_shipping</span>' },
-        { route: 'drivers',       label: 'Drivers',         icon: '<span class="material-symbols-outlined" style="font-size:18px">group</span>' },
-        { route: 'vehicles',      label: 'Vehicles',        icon: '<span class="material-symbols-outlined" style="font-size:18px">directions_car</span>' },
-        { route: 'customers',     label: 'Customers',       icon: '<span class="material-symbols-outlined" style="font-size:18px">business</span>' },
-        { route: 'notifications', label: 'Notifications',   icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread },
-        { route: 'settings',      label: 'Settings',        icon: '<span class="material-symbols-outlined" style="font-size:18px">settings</span>' }
+        { route: 'dashboard', label: 'Dashboard', icon: '<span class="material-symbols-outlined" style="font-size:18px">dashboard</span>' },
+        { route: 'trips', label: 'Trips', icon: '<span class="material-symbols-outlined" style="font-size:18px">local_shipping</span>' },
+        { route: 'drivers', label: 'Drivers', icon: '<span class="material-symbols-outlined" style="font-size:18px">group</span>' },
+        { route: 'vehicles', label: 'Vehicles', icon: '<span class="material-symbols-outlined" style="font-size:18px">directions_car</span>' },
+        { route: 'customers', label: 'Customers', icon: '<span class="material-symbols-outlined" style="font-size:18px">business</span>' },
+        { route: 'notifications', label: 'Notifications', icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread },
+        { route: 'settings', label: 'Settings', icon: '<span class="material-symbols-outlined" style="font-size:18px">settings</span>' }
     ];
 
     const driverLinks = [
         { route: 'driver_dashboard', label: 'My Assigned Trips', icon: '<span class="material-symbols-outlined" style="font-size:18px">route</span>' },
-        { route: 'notifications',    label: 'Notifications',     icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread }
+        { route: 'notifications', label: 'Notifications', icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread }
     ];
 
     const links = isOwner ? ownerLinks : driverLinks;
@@ -799,16 +799,16 @@ function renderPageContent() {
 }
 
 function renderOwnerDashboard() {
-    const total     = state.trips.length;
-    const active    = state.trips.filter(t => ['Driver Assigned', 'Picked Up', 'In Transit'].includes(t.status)).length;
+    const total = state.trips.length;
+    const active = state.trips.filter(t => ['Driver Assigned', 'Picked Up', 'In Transit'].includes(t.status)).length;
     const delivered = state.trips.filter(t => t.status === 'Delivered').length;
-    const pending   = state.trips.filter(t => t.status === 'Created').length;
+    const pending = state.trips.filter(t => t.status === 'Created').length;
 
     const statCards = [
-        { label: 'Total Trips',  value: total,     icon: 'route',          color: 'text-primary',     bg: 'bg-primary/10'     },
-        { label: 'Active Trips', value: active,    icon: 'local_shipping', color: 'text-purple-400',  bg: 'bg-purple-500/10'  },
-        { label: 'Delivered',    value: delivered, icon: 'task_alt',       color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-        { label: 'Pending',      value: pending,   icon: 'schedule',       color: 'text-amber-400',   bg: 'bg-amber-500/10'   },
+        { label: 'Total Trips', value: total, icon: 'route', color: 'text-primary', bg: 'bg-primary/10' },
+        { label: 'Active Trips', value: active, icon: 'local_shipping', color: 'text-purple-400', bg: 'bg-purple-500/10' },
+        { label: 'Delivered', value: delivered, icon: 'task_alt', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+        { label: 'Pending', value: pending, icon: 'schedule', color: 'text-amber-400', bg: 'bg-amber-500/10' },
     ];
 
     const recentTrips = state.trips.slice(0, 5);
@@ -1024,7 +1024,7 @@ function renderCreateTrip() {
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Goods *</label>
                         <input type="text" id="goods" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
@@ -1043,17 +1043,13 @@ function renderCreateTrip() {
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase text-slate-600 mb-1">
-                            Assign Vehicle
-                        </label>
-
-                        <select id="vehicle" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
-                            ${state.vehicles.map(v => `
-                                <option value="${v.id}">
-                                    ${v.number}
-                                </option>
-                            `).join('')}
-                        </select>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Assign Vehicle</label>
+                        <div class="relative">
+                            <select id="vehicle" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all [&>option]:bg-[#0F172A]">
+                                ${state.vehicles.map(v => `<option value="${v.id}">${v.number}</option>`).join('')}
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style="font-size:18px">expand_more</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -1164,9 +1160,9 @@ function renderTripDetails() {
                     <div class="absolute left-0 mx-4 sm:mx-10 top-1/2 -translate-y-1/2 h-1 bg-primary rounded-full transition-all duration-1000 ease-in-out shadow-[0_0_10px_rgba(236,91,19,0.5)]" style="width: calc(${(currentStepIndex / (steps.length - 1)) * 100}% - 32px)"></div>
                     
                     ${steps.map((step, idx) => {
-                        const isCompleted = idx <= currentStepIndex;
-                        const isCurrent = idx === currentStepIndex;
-                        return `
+        const isCompleted = idx <= currentStepIndex;
+        const isCurrent = idx === currentStepIndex;
+        return `
                             <div class="relative flex flex-col items-center group">
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center relative z-10 transition-colors duration-500 ${isCompleted ? 'bg-primary shadow-[0_0_15px_rgba(236,91,19,0.4)]' : 'bg-[#090D16] border-2 border-white/10'}">
                                     ${isCompleted ? `<span class="material-symbols-outlined text-white" style="font-size:16px">check</span>` : `<span class="w-2 h-2 rounded-full bg-white/20"></span>`}
@@ -1174,7 +1170,7 @@ function renderTripDetails() {
                                 <span class="absolute top-10 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-center w-20 sm:w-24 ${isCurrent ? 'text-primary' : (isCompleted ? 'text-white' : 'text-slate-500')}">${step}</span>
                             </div>
                         `;
-                    }).join('')}
+    }).join('')}
                 </div>
                 <div class="h-8"></div><!-- Spacer for absolute text -->
             </div>
@@ -1316,7 +1312,7 @@ async function updateStatus(tripId, newStatus) {
 
 function renderDriverDashboard() {
     const myTrips = state.trips.filter(t => t.driverName === state.currentUser.name);
-    
+
     return `
         <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-12">
             
