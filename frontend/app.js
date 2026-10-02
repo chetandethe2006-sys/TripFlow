@@ -1,6 +1,6 @@
 // --- MOCK DATA & STATE ---
 let state = {
-    currentUser: JSON.parse(localStorage.getItem('tf_user')) || null,
+    currentUser: (() => { try { return JSON.parse(localStorage.getItem('tf_user')); } catch(e) { localStorage.removeItem('tf_user'); return null; } })() || null,
     trips: JSON.parse(localStorage.getItem('tf_trips')) || [
         { id: "TRP1024", customer: "Acme Logistics Corp", customerEmail: "logistics@acme.com", customerPhone: "+1 (555) 234-5678", pickup: "Warehouse A, Chicago, IL", destination: "Distribution Hub, Dallas, TX", goods: "Industrial Steel Pipes", quantity: "12 Pallets", pickupDate: "2026-06-01", expectedDelivery: "2026-06-04", driverId: "DRV-01", driverName: "Amit Sharma", vehicleNumber: "IL-04-AB-9876", status: "In Transit", notes: "Handle with care.", date: "2026-06-01" },
         { id: "TRP1023", customer: "Global Retailers Inc", customerEmail: "supply@globalretail.com", customerPhone: "+1 (555) 876-5432", pickup: "Port Terminal 4, Miami, FL", destination: "Retail Center, Atlanta, GA", goods: "Consumer Electronics", quantity: "25 Cartons", pickupDate: "2026-05-28", expectedDelivery: "2026-05-30", driverId: "DRV-02", driverName: "Rajesh Kumar", vehicleNumber: "FL-08-XY-4321", status: "Delivered", notes: "Direct handover.", date: "2026-05-28" },
@@ -26,7 +26,8 @@ let state = {
         { id: "NOT-2", text: "Driver Rajesh Kumar completed Trip #TRP1018.", time: "2 hours ago", read: false }
     ],
     currentRoute: 'dashboard',
-    selectedTripId: null
+    selectedTripId: null,
+    showLogin: false
 };
 
 function saveState() {
@@ -40,6 +41,7 @@ function navigate(route, tripId = null) {
     if (tripId) state.selectedTripId = tripId;
     render();
 }
+window.navigate = navigate;
 
 function renderBadge(status) {
     const styles = {
@@ -76,7 +78,12 @@ function render() {
     if (!app) return;
 
     if (!state.currentUser) {
-        app.innerHTML = renderLogin();
+        if (state.showLogin) {
+            app.innerHTML = renderLogin();
+        } else {
+            app.innerHTML = renderLandingPage();
+            initScrollAnimation();
+        }
         return;
     }
 
@@ -93,9 +100,463 @@ function render() {
     `;
 }
 
+window.goToLogin = function() {
+    state.showLogin = true;
+    render();
+};
+
+window.goToLanding = function() {
+    state.showLogin = false;
+    render();
+};
+
+const frameCount = 240;
+const currentFrame = index => (
+    `assets/truck-frames/ezgif-frame-${index.toString().padStart(3, '0')}.jpg`
+);
+
+const animationImages = new Array(frameCount + 1).fill(null);
+let _animLoaderStarted = false; // guard: only one background load queue ever
+
+function initScrollAnimation() {
+    const canvas = document.getElementById("hero-canvas");
+    if (!canvas) return;
+    const context = canvas.getContext("2d");
+    const loadingScreen = document.getElementById("loading-frames");
+    const scrollText = document.getElementById("scroll-text");
+    const animationSection = document.getElementById("animation-section");
+
+    // Cached draw parameters — computed once from real image size, only refreshed on resize.
+    // This removes getBoundingClientRect() from the hot draw path entirely.
+    let drawParams = null;
+
+    function cacheDrawParams(img) {
+        const dpr = window.devicePixelRatio || 1;
+        const cssRect = canvas.getBoundingClientRect();
+        const tw = Math.round(cssRect.width * dpr);
+        const th = Math.round(cssRect.height * dpr);
+        if (canvas.width !== tw || canvas.height !== th) {
+            canvas.width = tw;
+            canvas.height = th;
+        }
+        const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+        drawParams = {
+            dx: Math.round((canvas.width  - img.width  * ratio) / 2),
+            dy: Math.round((canvas.height - img.height * ratio) / 2),
+            dw: Math.round(img.width  * ratio),
+            dh: Math.round(img.height * ratio),
+            iw: img.width,
+            ih: img.height,
+        };
+    }
+
+    // Draw using pre-cached params — zero layout reads, only GPU composite work
+    let currentDrawnFrame = -1;
+
+    function drawFrame(img) {
+        if (!img || !drawParams) return;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(img, 0, 0, drawParams.iw, drawParams.ih,
+                          drawParams.dx, drawParams.dy, drawParams.dw, drawParams.dh);
+    }
+
+    // Single-frame loader with dedup check
+    function loadFrame(index) {
+        return new Promise((resolve) => {
+            if (animationImages[index]) { resolve(animationImages[index]); return; }
+            const img = new Image();
+            img.onload  = () => { animationImages[index] = img; resolve(img); };
+            img.onerror = () => resolve(null);
+            img.src = currentFrame(index);
+        });
+    }
+
+    // Parallel batch: load a range of frames at once (BATCH_SIZE concurrent requests)
+    const BATCH_SIZE = 6;
+    function loadRange(start, end) {
+        const indices = [];
+        for (let i = start; i <= Math.min(end, frameCount); i++) {
+            if (!animationImages[i]) indices.push(i);
+        }
+        return Promise.all(indices.map(i => loadFrame(i)));
+    }
+
+    function startProgressiveLoad() {
+        if (_animLoaderStarted) return;
+        _animLoaderStarted = true;
+        // Phase 1: preload frames 2–30 in parallel (covers the first scroll zone)
+        loadRange(2, 30).then(() => {
+            // Phase 2: load rest in rolling batches of BATCH_SIZE
+            let next = 31;
+            function loadBatch() {
+                if (next > frameCount) return;
+                const end = Math.min(next + BATCH_SIZE - 1, frameCount);
+                loadRange(next, end).then(loadBatch);
+                next = end + 1;
+            }
+            loadBatch();
+        });
+    }
+
+    // Bootstrap: show frame 1 first, then begin background loading
+    loadFrame(1).then((img) => {
+        if (!img) return;
+        cacheDrawParams(img);
+        drawFrame(img);
+        currentDrawnFrame = 1;
+
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => { if (loadingScreen) loadingScreen.style.display = 'none'; }, 500);
+        }
+
+        startProgressiveLoad();
+    });
+
+    // Scroll handler: compute frame index (cheap math) in scroll event,
+    // defer all canvas work to a single RAF per vsync via ticking guard
+    let ticking = false;
+    let pendingFrameIndex = -1;
+
+    const handleScroll = () => {
+        if (!animationSection) return;
+        const rect = animationSection.getBoundingClientRect();
+        const scrollDistance = -rect.top;
+        const maxScroll = rect.height - window.innerHeight;
+
+        if (scrollDistance >= 0 && scrollDistance <= maxScroll) {
+            const fraction = scrollDistance / maxScroll;
+            const raw = Math.floor(fraction * frameCount) + 1;
+            pendingFrameIndex = Math.min(frameCount, Math.max(1, raw));
+
+            if (scrollText) {
+                if      (fraction < 0.1) scrollText.textContent = "Warehouse A, Chicago, IL";
+                else if (fraction < 0.5) scrollText.textContent = "In Transit...";
+                else if (fraction < 0.9) scrollText.textContent = "Approaching Destination";
+                else                     scrollText.textContent = "Distribution Hub, Dallas, TX";
+            }
+        }
+
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                const fi = pendingFrameIndex;
+                if (fi !== -1 && fi !== currentDrawnFrame) {
+                    const img = animationImages[fi];
+                    if (img) {
+                        drawFrame(img);
+                        currentDrawnFrame = fi;
+                    }
+                    // If frame not yet loaded: keep whatever is on canvas — no clear, no flicker
+                }
+                ticking = false;
+            });
+            ticking = true;
+        }
+    };
+
+    // Resize: invalidate cached params and redraw current frame
+    const handleResize = () => {
+        if (currentDrawnFrame !== -1 && animationImages[currentDrawnFrame]) {
+            cacheDrawParams(animationImages[currentDrawnFrame]);
+            drawFrame(animationImages[currentDrawnFrame]);
+        }
+    };
+
+    if (window._scrollListener) window.removeEventListener('scroll', window._scrollListener);
+    if (window._resizeListener) window.removeEventListener('resize', window._resizeListener);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize, { passive: true });
+    window._scrollListener = handleScroll;
+    window._resizeListener = handleResize;
+}
+
+function renderLandingPage() {
+    return `
+        <!-- SECTION 1: PREMIUM STICKY NAVBAR -->
+        <nav class="sticky top-0 z-50 w-full backdrop-blur-md bg-[#090D16]/90 border-b border-white/10 transition-all duration-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <!-- Brand Logo -->
+                <a class="flex items-center gap-3 group focus:outline-none" href="#">
+                    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform">
+                        <svg class="w-4 h-4 fill-current" viewbox="0 0 24 24">
+                            <path d="M4 4h16v4H14v12h-4V8H4V4z"></path>
+                        </svg>
+                    </div>
+                    <div class="flex items-center tracking-tight">
+                        <span class="text-white text-lg font-bold">Trip</span>
+                        <span class="text-primary text-lg font-black">Flow</span>
+                    </div>
+                </a>
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center gap-8">
+                    <a class="text-slate-300 hover:text-white text-sm font-medium transition-colors" href="#features">Features</a>
+                    <a class="text-slate-300 hover:text-white text-sm font-medium transition-colors" href="#workflow">Workflow</a>
+                </div>
+                <!-- Action Button -->
+                <div class="flex items-center gap-3">
+                    <button onclick="goToLogin()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/25 hover:bg-opacity-90 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-[18px]">lock</span>
+                        <span>Sign In</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="bg-[#090D16] text-white">
+            <!-- Hero Text Section (Normal scroll) -->
+            <section class="relative pt-24 pb-12 px-6 max-w-7xl mx-auto text-center z-20">
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-5 text-white">
+                    Manage Every Trip. <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-primary">Deliver with Confidence.</span>
+                </h1>
+                <p class="text-base sm:text-lg text-slate-400 font-normal leading-relaxed max-w-2xl mx-auto mb-8">
+                    Manage vehicles, assign drivers, organize shipments and track delivery progress — all in one place.
+                </p>
+                <!-- Hero Buttons -->
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <a class="px-6 py-3.5 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all flex items-center gap-2" href="#features">
+                        <span>Get Started</span>
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                    <button onclick="goToLogin()" class="px-6 py-3.5 rounded-xl bg-white/5 border border-white/15 text-white text-sm font-bold hover:bg-white/10 transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">login</span>
+                        <span>Sign In</span>
+                    </button>
+                </div>
+                <p class="mt-8 text-xs font-mono text-slate-400 flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-xs animate-bounce text-primary">arrow_downward</span>
+                    Scroll to track a live journey
+                </p>
+            </section>
+
+            <!-- Animation Section (Sticky 300vh) -->
+            <section id="animation-section" class="relative h-[300vh]">
+                <!-- Sticky container that holds ONLY the truck viewport layout -->
+                <div class="sticky top-16 h-[calc(100vh-64px)] flex flex-col justify-center overflow-hidden">
+                    <!-- Atmospheric Ambient Highlights -->
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[360px] bg-primary/20 blur-[130px] rounded-full pointer-events-none"></div>
+
+                    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col justify-center max-h-full">
+                        <!-- Dedicated Truck Animation Viewport -->
+                        <div class="haul-viewport relative w-full h-full max-h-[75vh] rounded-2xl border border-white/15 bg-[#0F172A]/80 shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col">
+                            <div class="absolute inset-0 hud-grid opacity-70 pointer-events-none"></div>
+                            
+                            <div class="relative z-20 flex flex-wrap items-center justify-between border-b border-white/10 bg-black/40 px-6 py-3.5 shrink-0">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span class="font-mono text-xs text-white tracking-widest uppercase">TRIP SIMULATION</span>
+                                </div>
+                            </div>
+
+                            <div class="relative flex-1 flex items-center justify-center p-4 sm:p-6 min-h-0">
+                                <div class="absolute inset-x-0 bottom-0 h-40 flex justify-center overflow-hidden pointer-events-none opacity-40">
+                                    <div class="w-1 bg-gradient-to-t from-primary/80 to-transparent transform -skew-x-12 mx-24"></div>
+                                    <div class="w-1 bg-dashed bg-gradient-to-t from-white/70 to-transparent mx-2"></div>
+                                    <div class="w-1 bg-gradient-to-t from-primary/80 to-transparent transform skew-x-12 mx-24"></div>
+                                </div>
+                                
+                                <div id="loading-frames" class="absolute inset-0 flex items-center justify-center bg-[#0F172A]/90 z-30 transition-opacity duration-500">
+                                    <div class="flex flex-col items-center">
+                                        <div class="w-12 h-12 border-4 border-white/10 border-t-primary rounded-full animate-spin mb-4"></div>
+                                        <p class="text-slate-400 font-medium">Loading Animation...</p>
+                                    </div>
+                                </div>
+
+                                <div class="relative z-10 w-full max-w-5xl mx-auto flex items-center justify-center h-full">
+                                    <canvas id="hero-canvas" class="w-full h-auto max-h-full aspect-video object-contain drop-shadow-[0_20px_45px_rgba(236,91,19,0.25)]"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="relative z-20 flex justify-center items-center p-4 bg-white/10 border-t border-white/10 shrink-0">
+                                <div class="flex flex-col items-center text-center">
+                                    <span class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Current Location</span>
+                                    <span id="scroll-text" class="text-lg sm:text-xl font-bold text-white truncate">Warehouse A, Chicago, IL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- SECTION 3: FEATURES -->
+        <section class="py-24 bg-[#F7F4EE] border-b border-[#E8E3DA] text-slate-900" id="features">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Section Header -->
+                <div class="max-w-3xl mb-16 text-center mx-auto">
+                    <div class="inline-flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest mb-3 justify-center">
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        Core Features
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                        Everything you need to manage your fleet
+                    </h2>
+                    <p class="mt-3 text-slate-600 text-base sm:text-lg">
+                        Simple, effective tools to organize trips, assign drivers, and track your shipments.
+                    </p>
+                </div>
+                <!-- 2x2 Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                    
+                    <!-- Feature 1: Vehicle Management -->
+                    <div class="bg-white rounded-2xl p-8 border border-[#E8E3DA] shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                        <div class="w-12 h-12 rounded-xl bg-orange-100 text-primary flex items-center justify-center mb-6">
+                            <span class="material-symbols-outlined text-2xl">local_shipping</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Vehicle Management</h3>
+                        <p class="text-slate-600 text-sm">
+                            Keep track of all your vehicles in one place. Monitor availability, capacity, and current assignments to maximize your fleet's efficiency.
+                        </p>
+                    </div>
+
+                    <!-- Feature 2: Driver Management -->
+                    <div class="bg-white rounded-2xl p-8 border border-[#E8E3DA] shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                        <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-6">
+                            <span class="material-symbols-outlined text-2xl">person</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Driver Management</h3>
+                        <p class="text-slate-600 text-sm">
+                            Organize your driver roster, verify licenses, and assign drivers to specific trips based on their availability.
+                        </p>
+                    </div>
+
+                    <!-- Feature 3: Shipment Tracking -->
+                    <div class="bg-white rounded-2xl p-8 border border-[#E8E3DA] shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-6">
+                            <span class="material-symbols-outlined text-2xl">share_location</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Shipment Tracking</h3>
+                        <p class="text-slate-600 text-sm">
+                            Follow the journey of your shipments from origin to destination. Keep customers informed with up-to-date delivery statuses.
+                        </p>
+                    </div>
+
+                    <!-- Feature 4: Trip Management -->
+                    <div class="bg-white rounded-2xl p-8 border border-[#E8E3DA] shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-6">
+                            <span class="material-symbols-outlined text-2xl">route</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Trip Management</h3>
+                        <p class="text-slate-600 text-sm">
+                            Create new trips, assign a driver and a vehicle, and log all important details such as cargo type, pickup date, and notes.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: SHIPMENT WORKFLOW -->
+        <section class="py-24 bg-white border-b border-slate-200 text-slate-900" id="workflow">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-2xl mx-auto mb-16">
+                    <span class="text-xs font-mono font-bold uppercase tracking-widest text-primary">Shipment Workflow</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight mt-2">
+                        Track Every Step of the Journey
+                    </h2>
+                    <p class="text-slate-600 text-sm sm:text-base mt-2">
+                        Monitor the status of your shipments from pickup to final delivery.
+                    </p>
+                </div>
+                <div class="relative">
+                    <div class="hidden lg:block absolute top-7 left-12 right-12 h-1 bg-slate-100 z-0">
+                        <div class="w-1/2 h-full bg-gradient-to-r from-emerald-500 via-primary to-primary"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 relative z-10">
+                        <div class="p-5 rounded-2xl bg-[#FAF8F5] border border-slate-200 flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                    <span class="material-symbols-outlined text-lg">check</span>
+                                </div>
+                                <span class="text-[11px] font-mono font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">PASSED</span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-900">1. Goods Received</h4>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">Warehouse or Origin Point</p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-[#FAF8F5] border border-slate-200 flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                    <span class="material-symbols-outlined text-lg">check</span>
+                                </div>
+                                <span class="text-[11px] font-mono font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">PASSED</span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-900">2. Loading Completed</h4>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">Vehicle assigned & loaded</p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-white border-2 border-primary shadow-lg shadow-primary/10 flex flex-col relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-bl">CURRENT</div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm shadow-md animate-pulse">
+                                    <span class="material-symbols-outlined text-lg">navigation</span>
+                                </div>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-900">3. In Transit</h4>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">On the road to destination</p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-[#FAF8F5] border border-slate-200 flex flex-col opacity-75">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">4</div>
+                                <span class="text-[11px] font-mono text-slate-600">UPCOMING</span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-800">4. Reached Destination</h4>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">Arrived at delivery point</p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-[#FAF8F5] border border-slate-200 flex flex-col opacity-75">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">5</div>
+                                <span class="text-[11px] font-mono text-slate-600">PENDING</span>
+                            </div>
+                            <h4 class="text-base font-bold text-slate-800">5. Delivered</h4>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">Goods handed over</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: CTA & FOOTER -->
+        <section class="bg-[#090D16] text-white pt-16 pb-12 border-t border-white/10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl bg-gradient-to-r from-slate-900 to-[#1A1F2C] border border-white/10 p-8 sm:p-12 mb-16 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl">
+                    <div class="max-w-xl text-center lg:text-left">
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">
+                            Ready to manage your fleet?
+                        </h3>
+                        <p class="text-slate-400 text-sm sm:text-base mt-2">
+                            Get started with TripFlow today to organize your transport operations.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-center gap-4 shrink-0">
+                        <button onclick="goToLogin()" class="px-6 py-3.5 rounded-xl bg-primary hover:bg-orange-600 text-white font-bold text-sm shadow-lg shadow-primary/30 transition-all">
+                            Sign In
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pb-8 border-b border-white/10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-primary flex items-center justify-center text-white text-xs font-bold">TF</div>
+                        <span class="text-white text-base font-bold">TripFlow</span>
+                    </div>
+                    <div class="flex gap-6 text-sm text-slate-400">
+                        <a href="#features" class="hover:text-white transition-colors">Features</a>
+                        <a href="#workflow" class="hover:text-white transition-colors">Workflow</a>
+                        <a href="#" onclick="goToLogin()" class="hover:text-white transition-colors">Sign In</a>
+                    </div>
+                </div>
+                <div class="pt-8 text-center text-xs text-slate-500">
+                    <div>© 2026 TripFlow Technologies Inc. All rights reserved.</div>
+                </div>
+            </div>
+        </section>
+    `;
+}
+
 function renderLogin() {
     return `
-        <div class="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+        <div class="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative">
+            <button onclick="goToLanding()" class="absolute top-8 left-8 text-slate-400 hover:text-white flex items-center gap-2 font-semibold bg-slate-900 px-4 py-2 rounded-lg border border-slate-800 transition-colors">
+                ← Back to Home
+            </button>
             <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-8">
                 <div class="text-center mb-8">
                     <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg shadow-blue-500/20">
@@ -178,6 +639,7 @@ function renderSidebar() {
 window.logout = function() {
     state.currentUser = null;
     localStorage.removeItem('tf_user');
+    state.showLogin = false;
     render();
 }
 
