@@ -17,11 +17,13 @@ public class TripService {
     private final TripRepository tripRepository;
     private final DriverRepository driverRepository;
     private final VehicleRepository vehicleRepository;
+    private final EmailNotificationService emailService;
 
-    public TripService(TripRepository tripRepository, DriverRepository driverRepository, VehicleRepository vehicleRepository) {
+    public TripService(TripRepository tripRepository, DriverRepository driverRepository, VehicleRepository vehicleRepository, EmailNotificationService emailService) {
         this.tripRepository = tripRepository;
         this.driverRepository = driverRepository;
         this.vehicleRepository = vehicleRepository;
+        this.emailService = emailService;
     }
 
     
@@ -32,7 +34,10 @@ public class TripService {
                 throw new RuntimeException("Driver is currently unavailable.");
             }
         }
-        return tripRepository.save(trip);
+        Trip saved = tripRepository.save(trip);
+        String details = "Pickup: " + saved.getPickup() + " -> Destination: " + saved.getDestination();
+        emailService.sendTripAssignmentEmail(saved.getId(), saved.getCustomerEmail(), details);
+        return saved;
     }
 
 
@@ -47,6 +52,8 @@ public class TripService {
     public Trip updateTrip(String id, Trip updatedTrip) {
         Trip existing = tripRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trip not found with id: " + id));
+
+        String oldStatus = existing.getStatus();
 
         existing.setCustomer(updatedTrip.getCustomer());
         existing.setCustomerEmail(updatedTrip.getCustomerEmail());
@@ -64,7 +71,13 @@ public class TripService {
         existing.setNotes(updatedTrip.getNotes());
         existing.setDate(updatedTrip.getDate());
 
-        return tripRepository.save(existing);
+        Trip saved = tripRepository.save(existing);
+        
+        if (oldStatus == null ? saved.getStatus() != null : !oldStatus.equals(saved.getStatus())) {
+            emailService.sendTripStatusUpdateEmail(saved.getId(), saved.getCustomerEmail(), oldStatus, saved.getStatus());
+        }
+        
+        return saved;
     }
 
     public void deleteTrip(String id) {
