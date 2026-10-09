@@ -620,7 +620,7 @@ function renderLandingPage() {
 }
 
 function renderLogin() {
-    const isDriverForm = state.loginMode === 'driver';
+    const isSubmitting = !!state.isLoggingIn;
     return `
         <div class="min-h-screen bg-[#090D16] flex items-center justify-center p-6 relative animate-fadeIn overflow-hidden">
             <!-- Subtle Background Grid & Gradients -->
@@ -649,74 +649,47 @@ function renderLogin() {
                             <span class="text-white font-bold">Trip</span>
                             <span class="text-primary font-black">Flow</span>
                         </div>
-                        <p class="text-sm text-slate-400 font-medium">${isDriverForm ? 'Driver Authentication' : 'Select your role to continue'}</p>
+                        <p class="text-sm text-slate-400 font-medium">Sign in to manage your fleet and trips</p>
                     </div>
 
-                    ${!isDriverForm ? `
-                        <!-- Role Options -->
-                        <div class="space-y-4">
-                            <button onclick="loginAs('owner')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                                        <span class="material-symbols-outlined" style="font-size:24px">admin_panel_settings</span>
-                                    </div>
-                                    <div class="text-left">
-                                        <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Owner</p>
-                                        <p class="text-slate-500 text-xs mt-0.5">Manage fleet, routes & operations</p>
-                                    </div>
-                                </div>
-                                <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
-                                    <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
-                                </div>
-                            </button>
-                            
-                            <button onclick="setLoginMode('driver')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                                        <span class="material-symbols-outlined" style="font-size:24px">directions_car</span>
-                                    </div>
-                                    <div class="text-left">
-                                        <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Driver</p>
-                                        <p class="text-slate-500 text-xs mt-0.5">Verify license & view assigned trips</p>
-                                    </div>
-                                </div>
-                                <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
-                                    <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
-                                </div>
-                            </button>
-                        </div>
-                    ` : `
-                        <!-- Driver Login Form -->
-                        <form onsubmit="handleDriverLoginForm(event)" class="space-y-4">
-                            ${state.loginError ? `
-                                <div class="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs flex items-center gap-2 animate-fadeIn">
-                                    <span class="material-symbols-outlined" style="font-size:16px">error</span>
-                                    <span>${state.loginError}</span>
-                                </div>
-                            ` : ''}
-                            
-                            <div>
-                                <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Driver License Number or ID *</label>
-                                <div class="relative">
-                                    <input type="text" id="driver_identifier" required placeholder="e.g. DL-99887766 or DRV-01" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
-                                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" style="font-size:18px">badge</span>
-                                </div>
-                                <p class="text-[11px] text-slate-500 mt-1.5">Enter your license (e.g. DL-99887766) or assigned Driver ID.</p>
+                    <!-- Unified Login Form -->
+                    <form onsubmit="handleLoginForm(event)" class="space-y-5">
+                        ${state.loginError ? `
+                            <div class="p-3.5 bg-rose-500/10 border border-rose-500/25 rounded-xl text-rose-400 text-xs flex items-center gap-2.5 animate-fadeIn">
+                                <span class="material-symbols-outlined shrink-0 text-rose-400" style="font-size:18px">error</span>
+                                <span class="font-medium">${state.loginError}</span>
                             </div>
+                        ` : ''}
 
-                            <button type="submit" class="w-full py-3 bg-primary hover:bg-orange-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/25 transition-all">
-                                <span class="material-symbols-outlined" style="font-size:18px">login</span>
-                                Authenticate & Enter
-                            </button>
+                        <div>
+                            <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Login ID / Username / License *</label>
+                            <div class="relative">
+                                <input type="text" id="login_id" required autofocus placeholder="e.g. owner or DRV-01 or DL-99887766" autocomplete="username" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition-all">
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" style="font-size:18px">person</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1.5">Owner username, Driver ID, License, or Phone number.</p>
+                        </div>
 
-                            <div class="pt-2 text-center">
-                                <button type="button" onclick="setLoginMode('select')" class="text-xs text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto">
-                                    <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span>
-                                    Switch to Role Selection
+                        <div>
+                            <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Password *</label>
+                            <div class="relative">
+                                <input type="password" id="login_password" required placeholder="Enter password" autocomplete="current-password" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary/50 transition-all pr-10">
+                                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus:outline-none p-0.5" title="Toggle password visibility">
+                                    <span id="password_toggle_icon" class="material-symbols-outlined" style="font-size:18px">visibility</span>
                                 </button>
                             </div>
-                        </form>
-                    `}
+                        </div>
+
+                        <button type="submit" ${isSubmitting ? 'disabled' : ''} class="w-full py-3 bg-primary hover:bg-orange-500 disabled:opacity-60 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/25 transition-all cursor-pointer">
+                            ${isSubmitting ? `
+                                <span class="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                Authenticating...
+                            ` : `
+                                <span class="material-symbols-outlined" style="font-size:18px">login</span>
+                                Sign In
+                            `}
+                        </button>
+                    </form>
 
                     <div class="mt-8 text-center pt-6 border-t border-white/5">
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5">
@@ -730,61 +703,61 @@ function renderLogin() {
     `;
 }
 
-window.setLoginMode = function (mode) {
-    state.loginMode = mode;
-    state.loginError = null;
-    render();
+window.togglePasswordVisibility = function () {
+    const pwdInput = document.getElementById('login_password');
+    const eyeIcon = document.getElementById('password_toggle_icon');
+    if (pwdInput) {
+        if (pwdInput.type === 'password') {
+            pwdInput.type = 'text';
+            if (eyeIcon) eyeIcon.textContent = 'visibility_off';
+        } else {
+            pwdInput.type = 'password';
+            if (eyeIcon) eyeIcon.textContent = 'visibility';
+        }
+    }
 };
 
-window.handleDriverLoginForm = async function (e) {
-    e.preventDefault();
-    const identifier = document.getElementById('driver_identifier').value;
+window.handleLoginForm = async function (e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const loginIdInput = document.getElementById('login_id');
+    const passwordInput = document.getElementById('login_password');
+    if (!loginIdInput || !passwordInput) return;
+
+    const loginId = loginIdInput.value;
+    const password = passwordInput.value;
+
     state.loginError = null;
+    state.isLoggingIn = true;
+    render();
+
     try {
-        const user = await driverLogin(identifier);
+        const user = await authLogin(loginId, password);
+        state.isLoggingIn = false;
         state.currentUser = {
             ...user,
             role: (user.role || 'driver').toLowerCase()
         };
         saveState();
-        state.currentRoute = 'driver_dashboard';
+        state.currentRoute = state.currentUser.role === 'owner' ? 'dashboard' : 'driver_dashboard';
         render();
         loadTripsFromBackend();
         loadDriversFromBackend();
+        if (state.currentUser.role === 'owner') {
+            loadVehiclesFromBackend();
+            loadCustomersFromBackend();
+            loadNotificationsFromBackend();
+        }
     } catch (error) {
-        state.loginError = error.message || 'Invalid driver credentials.';
+        state.isLoggingIn = false;
+        state.loginError = error.message || 'Invalid Login ID or Password.';
         render();
     }
 };
 
 window.loginAs = async function (role, id = 'OWNER', name = 'Admin Owner') {
+    state.loginMode = role;
     state.loginError = null;
-    if (role === 'owner') {
-        try {
-            const user = await ownerLogin('owner', 'owner123');
-            state.currentUser = {
-                ...user,
-                role: 'owner'
-            };
-            saveState();
-            state.currentRoute = 'dashboard';
-            render();
-            loadTripsFromBackend();
-            loadDriversFromBackend();
-            loadVehiclesFromBackend();
-        } catch (error) {
-            console.error("Owner login error:", error);
-            state.currentUser = { role: 'owner', id: 'OWNER', name: 'Admin Owner' };
-            saveState();
-            state.currentRoute = 'dashboard';
-            render();
-        }
-    } else {
-        state.currentUser = { role, id, name };
-        saveState();
-        state.currentRoute = 'driver_dashboard';
-        render();
-    }
+    render();
 };
 function renderSidebar() {
     const isOwner = state.currentUser.role === 'owner';
@@ -1910,11 +1883,13 @@ window.addEventListener('DOMContentLoaded', () => {
 });window.handleCreateDriver = async function (e) {
     e.preventDefault();
     const id = 'DRV-' + Math.floor(100 + Math.random() * 900);
+    const pass = document.getElementById('drv_password') ? document.getElementById('drv_password').value : '';
     const newDriver = {
         id: id,
         name: document.getElementById('drv_name').value,
         phone: document.getElementById('drv_phone').value,
         license: document.getElementById('drv_license').value,
+        password: pass && pass.trim().length > 0 ? pass.trim() : 'driver123',
         availability: 'Available',
         completedTrips: 0
     };
@@ -2005,15 +1980,20 @@ function renderCreateDriver() {
             <form onsubmit="handleCreateDriver(event)" class="bg-[#0F172A] rounded-2xl border border-white/10 p-6 space-y-6">
                 <div>
                     <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Driver Name *</label>
-                    <input type="text" id="drv_name" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                    <input type="text" id="drv_name" required placeholder="Full Name" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
                 </div>
                 <div>
                     <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Phone *</label>
-                    <input type="text" id="drv_phone" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                    <input type="text" id="drv_phone" required placeholder="+1 (555) 000-0000" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
                 </div>
                 <div>
                     <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">License *</label>
-                    <input type="text" id="drv_license" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                    <input type="text" id="drv_license" required placeholder="DL-12345678" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Password (Optional)</label>
+                    <input type="password" id="drv_password" placeholder="Default: driver123" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-slate-600">
+                    <p class="text-[11px] text-slate-500 mt-1">Leave empty to use default password (driver123).</p>
                 </div>
                 <button type="submit" class="w-full py-3 bg-primary hover:bg-orange-500 text-white font-bold rounded-xl flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined">check_circle</span> Save Driver

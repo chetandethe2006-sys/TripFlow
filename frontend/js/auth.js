@@ -118,49 +118,12 @@ function isDriver() {
     return role === "DRIVER" || role === "driver";
 }
 
-// Authenticate Driver with Backend
-async function driverLogin(identifier, password = "") {
-    try {
-        const response = await fetch(`${API_BASE_URL}/auth/driver-login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                identifier: identifier,
-                password: password || undefined
-            })
-        });
-
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || "Driver login failed");
-        }
-
-        const data = await response.json();
-        if (data.token) {
-            saveToken(data.token);
-        }
-        
-        const user = {
-            id: data.driverId || data.id,
-            name: data.name,
-            role: "DRIVER",
-            license: data.license,
-            phone: data.phone,
-            availability: data.availability,
-            completedTrips: data.completedTrips
-        };
-        saveUser(user);
-        return user;
-    } catch (error) {
-        console.error("Driver login error:", error);
-        throw error;
+// Unified Login with Backend (Owner or Driver)
+async function authLogin(loginId, password) {
+    if (!loginId || !loginId.trim() || !password || !password.trim()) {
+        throw new Error("Login ID and Password are required");
     }
-}
 
-// Authenticate Owner with Backend
-async function ownerLogin(username = "owner", password = "password") {
     try {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: "POST",
@@ -168,14 +131,14 @@ async function ownerLogin(username = "owner", password = "password") {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                username: username,
+                loginId: loginId.trim(),
                 password: password
             })
         });
 
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || "Owner login failed");
+            throw new Error(errData.error || "Invalid Login ID or Password");
         }
 
         const data = await response.json();
@@ -183,15 +146,31 @@ async function ownerLogin(username = "owner", password = "password") {
             saveToken(data.token);
         }
 
+        const role = (data.role || (data.id === 'OWNER' ? 'OWNER' : 'DRIVER')).toUpperCase();
         const user = {
-            id: data.username || "OWNER",
-            name: data.name || "Admin Owner",
-            role: "OWNER"
+            id: data.id || data.driverId || loginId,
+            name: data.name || (role === 'OWNER' ? 'Admin Owner' : 'Driver'),
+            role: role,
+            license: data.license || '',
+            phone: data.phone || '',
+            availability: data.availability || 'Available',
+            completedTrips: data.completedTrips || 0
         };
+
         saveUser(user);
         return user;
     } catch (error) {
-        console.error("Owner login error:", error);
+        console.error("Authentication error:", error);
         throw error;
     }
+}
+
+// Authenticate Driver with Backend (Legacy wrapper)
+async function driverLogin(identifier, password = "driver123") {
+    return authLogin(identifier, password);
+}
+
+// Authenticate Owner with Backend (Legacy wrapper)
+async function ownerLogin(username = "owner", password = "owner123") {
+    return authLogin(username, password);
 }

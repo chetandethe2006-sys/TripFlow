@@ -33,6 +33,7 @@ public class AuthController {
     }
 
     public static class LoginRequest {
+        public String loginId;
         public String identifier;
         public String username;
         public String password;
@@ -40,18 +41,23 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
-        String query = req.identifier != null ? req.identifier : req.username;
-        String password = req.password != null ? req.password : "";
+        String query = req.loginId != null ? req.loginId : (req.identifier != null ? req.identifier : req.username);
+        String password = req.password;
 
-        if (query == null || query.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Username, Driver ID, or License is required"));
+        if (query == null || query.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Login ID and Password are required"));
         }
 
         String trimmed = query.trim();
 
-        // 1. Check Owner login
+        // 1. Check Owner Authentication
         if (trimmed.equalsIgnoreCase(ownerUsername) || trimmed.equalsIgnoreCase("admin") || trimmed.equalsIgnoreCase("owner@tripflow.com")) {
-            if (ownerPassword.equals(password) || "admin123".equals(password) || "owner123".equals(password)) {
+            boolean ownerMatches = passwordEncoder.matches(password, ownerPassword)
+                    || ownerPassword.equals(password)
+                    || "owner123".equals(password);
+
+            if (ownerMatches) {
                 String token = jwtUtil.generateToken("OWNER", "OWNER", "OWNER", "Admin Owner");
                 return ResponseEntity.ok(Map.of(
                         "token", token,
@@ -61,35 +67,31 @@ public class AuthController {
                 ));
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid owner password"));
+                        .body(Map.of("error", "Invalid Login ID or Password"));
             }
         }
 
-        // 2. Check Driver login
+        // 2. Check Driver Authentication
         Optional<Driver> driverOpt = driverRepository.findByIdOrLicenseOrPhone(trimmed, trimmed, trimmed);
         if (driverOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid credentials. No driver found matching: " + trimmed));
+                    .body(Map.of("error", "Invalid Login ID or Password"));
         }
 
         Driver driver = driverOpt.get();
 
-        // Check password
-        if (driver.getPassword() != null && !driver.getPassword().isEmpty()) {
-            boolean matches = passwordEncoder.matches(password, driver.getPassword())
-                    || password.equals(driver.getPassword())
-                    || password.equals("driver123")
-                    || password.equals("password123");
-            if (!matches) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid driver password"));
-            }
-        } else {
-            // If password wasn't set, allow standard dev password 'driver123' or empty
-            if (!password.isEmpty() && !password.equals("driver123") && !password.equals("password123")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid driver password"));
-            }
+        // Verify password with BCrypt
+        if (driver.getPassword() == null || driver.getPassword().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Account has no password set. Please contact administrator."));
+        }
+
+        boolean driverMatches = passwordEncoder.matches(password, driver.getPassword())
+                || password.equals(driver.getPassword());
+
+        if (!driverMatches) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid Login ID or Password"));
         }
 
         String token = jwtUtil.generateToken(driver.getId(), "DRIVER", driver.getId(), driver.getName());
@@ -100,6 +102,7 @@ public class AuthController {
                 "phone", driver.getPhone() != null ? driver.getPhone() : "",
                 "license", driver.getLicense() != null ? driver.getLicense() : "",
                 "availability", driver.getAvailability() != null ? driver.getAvailability() : "Available",
+                "completedTrips", driver.getCompletedTrips(),
                 "role", "DRIVER"
         ));
     }
@@ -107,11 +110,11 @@ public class AuthController {
     @PostMapping("/driver-login")
     public ResponseEntity<?> driverLogin(@RequestBody Map<String, String> body) {
         LoginRequest req = new LoginRequest();
-        req.identifier = body.get("identifier");
-        if (req.identifier == null) req.identifier = body.get("license");
-        if (req.identifier == null) req.identifier = body.get("id");
+        req.loginId = body.get("loginId");
+        if (req.loginId == null) req.loginId = body.get("identifier");
+        if (req.loginId == null) req.loginId = body.get("license");
+        if (req.loginId == null) req.loginId = body.get("id");
         req.password = body.get("password");
-        if (req.password == null) req.password = "driver123"; // default fallback for backwards compatibility
         return login(req);
     }
 }
