@@ -25,16 +25,42 @@ public class DataSeeder {
             CustomerRepository customerRepository,
             VehicleRepository vehicleRepository,
             TripRepository tripRepository,
-            NotificationRepository notificationRepository
+            NotificationRepository notificationRepository,
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder
     ) {
         return args -> {
             // Seed Drivers
             if (driverRepository.count() == 0) {
-                driverRepository.saveAll(List.of(
-                        new Driver("DRV-01", "Amit Sharma", "+1 (555) 111-2233", "DL-99887766", "On Trip", 48),
-                        new Driver("DRV-02", "Rajesh Kumar", "+1 (555) 222-3344", "DL-44332211", "Available", 62),
-                        new Driver("DRV-03", "Suresh Patel", "+1 (555) 333-4455", "DL-55667788", "On Trip", 31)
-                ));
+                Driver d1 = new Driver("DRV-01", "Amit Sharma", "+1 (555) 111-2233", "DL-99887766", "On Trip", 48);
+                d1.setPassword(passwordEncoder.encode("driver123"));
+                d1.setRole("DRIVER");
+
+                Driver d2 = new Driver("DRV-02", "Rajesh Kumar", "+1 (555) 222-3344", "DL-44332211", "Available", 62);
+                d2.setPassword(passwordEncoder.encode("driver123"));
+                d2.setRole("DRIVER");
+
+                Driver d3 = new Driver("DRV-03", "Suresh Patel", "+1 (555) 333-4455", "DL-55667788", "On Trip", 31);
+                d3.setPassword(passwordEncoder.encode("driver123"));
+                d3.setRole("DRIVER");
+
+                driverRepository.saveAll(List.of(d1, d2, d3));
+            } else {
+                // Ensure existing seeded drivers have password and role if missing
+                List<Driver> existingDrivers = driverRepository.findAll();
+                for (Driver d : existingDrivers) {
+                    boolean changed = false;
+                    if (d.getPassword() == null || d.getPassword().isBlank()) {
+                        d.setPassword(passwordEncoder.encode("driver123"));
+                        changed = true;
+                    }
+                    if (d.getRole() == null || d.getRole().isBlank()) {
+                        d.setRole("DRIVER");
+                        changed = true;
+                    }
+                    if (changed) {
+                        driverRepository.save(d);
+                    }
+                }
             }
 
             // Seed Customers

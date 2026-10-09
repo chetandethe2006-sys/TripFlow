@@ -17,6 +17,9 @@ public class DriverService {
     }
 
     public Driver createDriver(Driver driver) {
+        if (driver.getLicense() != null && driverRepository.existsByLicense(driver.getLicense())) {
+            throw new RuntimeException("Driver with this license already exists");
+        }
         return driverRepository.save(driver);
     }
 
@@ -41,6 +44,11 @@ public class DriverService {
         return driverRepository.save(existing);
     }
 
+        public Driver updateAvailability(String id, String availability) {
+        Driver existing = driverRepository.findById(id).orElseThrow(() -> new RuntimeException("Driver not found"));
+        existing.setAvailability(availability);
+        return driverRepository.save(existing);
+    }
     public void deleteDriver(String id) {
         if (!driverRepository.existsById(id)) {
             throw new RuntimeException("Driver not found with id: " + id);

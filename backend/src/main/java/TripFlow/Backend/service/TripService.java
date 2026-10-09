@@ -2,6 +2,10 @@ package TripFlow.Backend.service;
 
 import TripFlow.Backend.model.Trip;
 import TripFlow.Backend.repository.TripRepository;
+import TripFlow.Backend.model.Driver;
+import TripFlow.Backend.repository.DriverRepository;
+import TripFlow.Backend.model.Vehicle;
+import TripFlow.Backend.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,14 +15,26 @@ import java.util.Optional;
 public class TripService {
 
     private final TripRepository tripRepository;
+    private final DriverRepository driverRepository;
+    private final VehicleRepository vehicleRepository;
 
-    public TripService(TripRepository tripRepository) {
+    public TripService(TripRepository tripRepository, DriverRepository driverRepository, VehicleRepository vehicleRepository) {
         this.tripRepository = tripRepository;
+        this.driverRepository = driverRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
+    
     public Trip createTrip(Trip trip) {
+        if (trip.getDriverId() != null) {
+            Driver driver = driverRepository.findById(trip.getDriverId()).orElse(null);
+            if (driver != null && !"Available".equalsIgnoreCase(driver.getAvailability())) {
+                throw new RuntimeException("Driver is currently unavailable.");
+            }
+        }
         return tripRepository.save(trip);
     }
+
 
     public List<Trip> getAllTrips() {
         return tripRepository.findAll();

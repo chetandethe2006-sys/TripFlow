@@ -17,7 +17,7 @@ async function getTrips() {
             error
         );
 
-        return [];
+        throw error;
     }
 }
 
@@ -38,7 +38,7 @@ async function getTripById(tripId) {
             error
         );
 
-        return null;
+        throw error;
     }
 }
 
@@ -60,7 +60,7 @@ async function createTrip(tripData) {
             error
         );
 
-        return null;
+        throw error;
     }
 }
 
@@ -85,7 +85,7 @@ async function updateTrip(
             error
         );
 
-        return null;
+        throw error;
     }
 }
 
@@ -135,7 +135,7 @@ async function updateTripStatus(
             error
         );
 
-        return null;
+        throw error;
     }
 }
 
@@ -162,7 +162,7 @@ async function assignDriverToTrip(
             error
         );
 
-        return null;
+        throw error;
     }
 }
 
@@ -189,6 +189,6 @@ async function assignVehicleToTrip(
             error
         );
 
-        return null;
+        throw error;
     }
 }

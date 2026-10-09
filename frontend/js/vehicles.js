@@ -6,19 +6,10 @@
 // Get all vehicles
 async function getVehicles() {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/vehicles`
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch vehicles");
-        }
-
-        return await response.json();
-
+        return await apiGet("/vehicles");
     } catch (error) {
         console.error("Error fetching vehicles:", error);
-        return [];
+        throw error;
     }
 }
 
@@ -26,19 +17,10 @@ async function getVehicles() {
 // Get vehicle by ID
 async function getVehicleById(vehicleId) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/vehicles/${vehicleId}`
-        );
-
-        if (!response.ok) {
-            throw new Error("Vehicle not found");
-        }
-
-        return await response.json();
-
+        return await apiGet(`/vehicles/${vehicleId}`);
     } catch (error) {
         console.error("Error fetching vehicle:", error);
-        return null;
+        throw error;
     }
 }
 
@@ -46,28 +28,10 @@ async function getVehicleById(vehicleId) {
 // Create new vehicle
 async function createVehicle(vehicleData) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/vehicles`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(vehicleData)
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to create vehicle");
-        }
-
-        return await response.json();
-
+        return await apiPost("/vehicles", vehicleData);
     } catch (error) {
         console.error("Error creating vehicle:", error);
-        return null;
+        throw error;
     }
 }
 
@@ -75,28 +39,10 @@ async function createVehicle(vehicleData) {
 // Update vehicle
 async function updateVehicle(vehicleId, vehicleData) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/vehicles/${vehicleId}`,
-            {
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(vehicleData)
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to update vehicle");
-        }
-
-        return await response.json();
-
+        return await apiPut(`/vehicles/${vehicleId}`, vehicleData);
     } catch (error) {
         console.error("Error updating vehicle:", error);
-        return null;
+        throw error;
     }
 }
 
@@ -104,22 +50,10 @@ async function updateVehicle(vehicleId, vehicleData) {
 // Delete vehicle
 async function deleteVehicle(vehicleId) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/vehicles/${vehicleId}`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to delete vehicle");
-        }
-
-        return true;
-
+        return await apiDelete(`/vehicles/${vehicleId}`);
     } catch (error) {
         console.error("Error deleting vehicle:", error);
-        return false;
+        throw error;
     }
 }
 
@@ -130,19 +64,14 @@ async function updateVehicleAvailability(
     availability
 ) {
     try {
-
-        return await updateVehicle(vehicleId, {
-            availability: availability
-        });
-
+        const isAvailable = availability === "Available" || availability === true;
+        return await apiPut(`/vehicles/${vehicleId}/availability`, { available: isAvailable });
     } catch (error) {
-
         console.error(
             "Error updating vehicle availability:",
             error
         );
-
-        return null;
+        throw error;
     }
 }
 
@@ -165,6 +94,6 @@ async function assignDriverToVehicle(
             error
         );
 
-        return null;
+        throw error;
     }
 }

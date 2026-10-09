@@ -41,6 +41,11 @@ public class VehicleService {
         return vehicleRepository.save(existing);
     }
 
+        public Vehicle updateAvailability(String id, String availability) {
+        Vehicle existing = vehicleRepository.findById(id).orElseThrow(() -> new RuntimeException("Vehicle not found"));
+        existing.setAvailability(availability);
+        return vehicleRepository.save(existing);
+    }
     public void deleteVehicle(String id) {
         if (!vehicleRepository.existsById(id)) {
             throw new RuntimeException("Vehicle not found with id: " + id);

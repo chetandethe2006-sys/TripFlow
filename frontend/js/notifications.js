@@ -19,7 +19,7 @@ async function getNotifications() {
             error
         );
 
-        return [];
+        throw error;
     }
 }
 
@@ -42,7 +42,7 @@ async function getNotificationById(
             error
         );
 
-        return null;
+        throw error;
     }
 }
 
@@ -65,7 +65,7 @@ async function markNotificationAsRead(
             error
         );
 
-        return null;
+        throw error;
     }
 }
 
@@ -86,7 +86,7 @@ async function markAllNotificationsAsRead() {
             error
         );
 
-        return null;
+        throw error;
     }
 }
 

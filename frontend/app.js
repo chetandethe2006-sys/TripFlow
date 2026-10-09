@@ -1,6 +1,13 @@
 // --- MOCK DATA & STATE ---
 let state = {
-    currentUser: (() => { try { return JSON.parse(localStorage.getItem('tf_user')); } catch (e) { localStorage.removeItem('tf_user'); return null; } })() || null,
+    currentUser: (() => {
+        try {
+            const u = localStorage.getItem('tripflow_current_user') || localStorage.getItem('tf_user');
+            return u ? JSON.parse(u) : null;
+        } catch (e) {
+            return null;
+        }
+    })(),
     trips: JSON.parse(localStorage.getItem('tf_trips')) || [
         { id: "TRP1024", customer: "Acme Logistics Corp", customerEmail: "logistics@acme.com", customerPhone: "+1 (555) 234-5678", pickup: "Warehouse A, Chicago, IL", destination: "Distribution Hub, Dallas, TX", goods: "Industrial Steel Pipes", quantity: "12 Pallets", pickupDate: "2026-06-01", expectedDelivery: "2026-06-04", driverId: "DRV-01", driverName: "Amit Sharma", vehicleNumber: "IL-04-AB-9876", status: "In Transit", notes: "Handle with care.", date: "2026-06-01" },
         { id: "TRP1023", customer: "Global Retailers Inc", customerEmail: "supply@globalretail.com", customerPhone: "+1 (555) 876-5432", pickup: "Port Terminal 4, Miami, FL", destination: "Retail Center, Atlanta, GA", goods: "Consumer Electronics", quantity: "25 Cartons", pickupDate: "2026-05-28", expectedDelivery: "2026-05-30", driverId: "DRV-02", driverName: "Rajesh Kumar", vehicleNumber: "FL-08-XY-4321", status: "Delivered", notes: "Direct handover.", date: "2026-05-28" },
@@ -31,7 +38,12 @@ let state = {
 };
 
 function saveState() {
-    localStorage.setItem('tf_user', JSON.stringify(state.currentUser));
+    if (state.currentUser) {
+        localStorage.setItem('tripflow_current_user', JSON.stringify(state.currentUser));
+    } else {
+        localStorage.removeItem('tripflow_current_user');
+        localStorage.removeItem('tf_user');
+    }
     localStorage.setItem('tf_trips', JSON.stringify(state.trips));
     localStorage.setItem('tf_notifs', JSON.stringify(state.notifications));
 }
@@ -182,7 +194,7 @@ function initScrollAnimation() {
     const scrollText = document.getElementById("scroll-text");
     const animationSection = document.getElementById("animation-section");
 
-    // Cached draw parameters — computed once from real image size, only refreshed on resize.
+    // Cached draw parameters â€” computed once from real image size, only refreshed on resize.
     // This removes getBoundingClientRect() from the hot draw path entirely.
     let drawParams = null;
 
@@ -206,7 +218,7 @@ function initScrollAnimation() {
         };
     }
 
-    // Draw using pre-cached params — zero layout reads, only GPU composite work
+    // Draw using pre-cached params â€” zero layout reads, only GPU composite work
     let currentDrawnFrame = -1;
 
     function drawFrame(img) {
@@ -240,7 +252,7 @@ function initScrollAnimation() {
     function startProgressiveLoad() {
         if (_animLoaderStarted) return;
         _animLoaderStarted = true;
-        // Phase 1: preload frames 2–30 in parallel (covers the first scroll zone)
+        // Phase 1: preload frames 2â€“30 in parallel (covers the first scroll zone)
         loadRange(2, 30).then(() => {
             // Phase 2: load rest in rolling batches of BATCH_SIZE
             let next = 31;
@@ -302,7 +314,7 @@ function initScrollAnimation() {
                         drawFrame(img);
                         currentDrawnFrame = fi;
                     }
-                    // If frame not yet loaded: keep whatever is on canvas — no clear, no flicker
+                    // If frame not yet loaded: keep whatever is on canvas â€” no clear, no flicker
                 }
                 ticking = false;
             });
@@ -366,7 +378,7 @@ function renderLandingPage() {
                     Manage Every Trip. <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-primary">Deliver with Confidence.</span>
                 </h1>
                 <p class="text-base sm:text-lg text-slate-400 font-normal leading-relaxed max-w-2xl mx-auto mb-8">
-                    Manage vehicles, assign drivers, organize shipments and track delivery progress — all in one place.
+                    Manage vehicles, assign drivers, organize shipments and track delivery progress â€” all in one place.
                 </p>
                 <!-- Hero Buttons -->
                 <div class="flex flex-wrap items-center justify-center gap-4">
@@ -600,7 +612,7 @@ function renderLandingPage() {
                     </div>
                 </div>
                 <div class="pt-8 text-center text-xs text-slate-500">
-                    <div>© 2026 TripFlow Technologies Inc. All rights reserved.</div>
+                    <div>Â© 2026 TripFlow Technologies Inc. All rights reserved.</div>
                 </div>
             </div>
         </section>
@@ -608,6 +620,7 @@ function renderLandingPage() {
 }
 
 function renderLogin() {
+    const isDriverForm = state.loginMode === 'driver';
     return `
         <div class="min-h-screen bg-[#090D16] flex items-center justify-center p-6 relative animate-fadeIn overflow-hidden">
             <!-- Subtle Background Grid & Gradients -->
@@ -628,54 +641,87 @@ function renderLogin() {
 
                 <div class="relative z-10">
                     <!-- Brand Header -->
-                    <div class="flex flex-col items-center mb-10">
-                        <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-[0_0_30px_rgba(236,91,19,0.3)] mb-5">
+                    <div class="flex flex-col items-center mb-8">
+                        <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-[0_0_30px_rgba(236,91,19,0.3)] mb-4">
                             <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M4 4h16v4H14v12h-4V8H4V4z"/></svg>
                         </div>
-                        <div class="flex items-center tracking-tight text-3xl mb-2">
+                        <div class="flex items-center tracking-tight text-3xl mb-1">
                             <span class="text-white font-bold">Trip</span>
                             <span class="text-primary font-black">Flow</span>
                         </div>
-                        <p class="text-sm text-slate-400 font-medium">Select your role to continue</p>
+                        <p class="text-sm text-slate-400 font-medium">${isDriverForm ? 'Driver Authentication' : 'Select your role to continue'}</p>
                     </div>
 
-                    <!-- Role Options -->
-                    <div class="space-y-4">
-                        <button onclick="loginAs('owner')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                                    <span class="material-symbols-outlined" style="font-size:24px">admin_panel_settings</span>
+                    ${!isDriverForm ? `
+                        <!-- Role Options -->
+                        <div class="space-y-4">
+                            <button onclick="loginAs('owner')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                        <span class="material-symbols-outlined" style="font-size:24px">admin_panel_settings</span>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Owner</p>
+                                        <p class="text-slate-500 text-xs mt-0.5">Manage fleet, routes & operations</p>
+                                    </div>
                                 </div>
-                                <div class="text-left">
-                                    <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Owner</p>
-                                    <p class="text-slate-500 text-xs mt-0.5">Manage fleet, routes & operations</p>
+                                <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
+                                    <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
                                 </div>
-                            </div>
-                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
-                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
-                            </div>
-                        </button>
-                        
-                        <button onclick="loginAs('driver', 'DRV-01', 'Amit Sharma')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                                    <span class="material-symbols-outlined" style="font-size:24px">directions_car</span>
+                            </button>
+                            
+                            <button onclick="setLoginMode('driver')" class="group w-full flex items-center justify-between p-4 bg-[#090D16]/50 hover:bg-primary/10 border border-white/5 hover:border-primary/40 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 hover:shadow-[0_0_20px_rgba(236,91,19,0.1)] hover:-translate-y-0.5">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                                        <span class="material-symbols-outlined" style="font-size:24px">directions_car</span>
+                                    </div>
+                                    <div class="text-left">
+                                        <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Driver</p>
+                                        <p class="text-slate-500 text-xs mt-0.5">Verify license & view assigned trips</p>
+                                    </div>
                                 </div>
-                                <div class="text-left">
-                                    <p class="text-white font-bold text-base group-hover:text-primary transition-colors">Login as Driver</p>
-                                    <p class="text-slate-500 text-xs mt-0.5">View your assigned trips & tasks</p>
+                                <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
+                                    <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
                                 </div>
+                            </button>
+                        </div>
+                    ` : `
+                        <!-- Driver Login Form -->
+                        <form onsubmit="handleDriverLoginForm(event)" class="space-y-4">
+                            ${state.loginError ? `
+                                <div class="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs flex items-center gap-2 animate-fadeIn">
+                                    <span class="material-symbols-outlined" style="font-size:16px">error</span>
+                                    <span>${state.loginError}</span>
+                                </div>
+                            ` : ''}
+                            
+                            <div>
+                                <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Driver License Number or ID *</label>
+                                <div class="relative">
+                                    <input type="text" id="driver_identifier" required placeholder="e.g. DL-99887766 or DRV-01" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all">
+                                    <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" style="font-size:18px">badge</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1.5">Enter your license (e.g. DL-99887766) or assigned Driver ID.</p>
                             </div>
-                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:translate-x-1 transition-all">
-                                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary" style="font-size:18px">arrow_forward</span>
+
+                            <button type="submit" class="w-full py-3 bg-primary hover:bg-orange-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/25 transition-all">
+                                <span class="material-symbols-outlined" style="font-size:18px">login</span>
+                                Authenticate & Enter
+                            </button>
+
+                            <div class="pt-2 text-center">
+                                <button type="button" onclick="setLoginMode('select')" class="text-xs text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto">
+                                    <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span>
+                                    Switch to Role Selection
+                                </button>
                             </div>
-                        </button>
-                    </div>
+                        </form>
+                    `}
 
                     <div class="mt-8 text-center pt-6 border-t border-white/5">
                         <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5">
                             <span class="material-symbols-outlined" style="font-size:14px">lock</span>
-                            Secure Access Required
+                            Backend Verified Access
                         </p>
                     </div>
                 </div>
@@ -684,13 +730,62 @@ function renderLogin() {
     `;
 }
 
-window.loginAs = function (role, id = 'OWNER', name = 'Admin Owner') {
-    state.currentUser = { role, id, name };
-    saveState();
-    state.currentRoute = role === 'owner' ? 'dashboard' : 'driver_dashboard';
+window.setLoginMode = function (mode) {
+    state.loginMode = mode;
+    state.loginError = null;
     render();
-}
+};
 
+window.handleDriverLoginForm = async function (e) {
+    e.preventDefault();
+    const identifier = document.getElementById('driver_identifier').value;
+    state.loginError = null;
+    try {
+        const user = await driverLogin(identifier);
+        state.currentUser = {
+            ...user,
+            role: (user.role || 'driver').toLowerCase()
+        };
+        saveState();
+        state.currentRoute = 'driver_dashboard';
+        render();
+        loadTripsFromBackend();
+        loadDriversFromBackend();
+    } catch (error) {
+        state.loginError = error.message || 'Invalid driver credentials.';
+        render();
+    }
+};
+
+window.loginAs = async function (role, id = 'OWNER', name = 'Admin Owner') {
+    state.loginError = null;
+    if (role === 'owner') {
+        try {
+            const user = await ownerLogin('owner', 'owner123');
+            state.currentUser = {
+                ...user,
+                role: 'owner'
+            };
+            saveState();
+            state.currentRoute = 'dashboard';
+            render();
+            loadTripsFromBackend();
+            loadDriversFromBackend();
+            loadVehiclesFromBackend();
+        } catch (error) {
+            console.error("Owner login error:", error);
+            state.currentUser = { role: 'owner', id: 'OWNER', name: 'Admin Owner' };
+            saveState();
+            state.currentRoute = 'dashboard';
+            render();
+        }
+    } else {
+        state.currentUser = { role, id, name };
+        saveState();
+        state.currentRoute = 'driver_dashboard';
+        render();
+    }
+};
 function renderSidebar() {
     const isOwner = state.currentUser.role === 'owner';
     const unread = state.notifications.filter(n => !n.read).length;
@@ -750,10 +845,13 @@ function renderSidebar() {
 
 window.logout = function () {
     state.currentUser = null;
+    if (typeof removeToken === 'function') removeToken();
+    localStorage.removeItem('tripflow_token');
+    localStorage.removeItem('tripflow_current_user');
     localStorage.removeItem('tf_user');
     state.showLogin = false;
     render();
-}
+};
 
 function renderNavbar() {
     const unreadCount = state.notifications.filter(n => !n.read).length;
@@ -793,6 +891,8 @@ function renderPageContent() {
         case 'customers': return renderCustomers();
         case 'notifications': return renderNotifications();
         case 'settings': return renderSettings();
+        case 'create_driver': return renderCreateDriver();
+        case 'create_vehicle': return renderCreateVehicle();
         case 'driver_dashboard': return renderDriverDashboard();
         default: return renderOwnerDashboard();
     }
@@ -1037,7 +1137,7 @@ function renderCreateTrip() {
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Assign Driver</label>
                         <div class="relative">
                             <select id="driver" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all [&>option]:bg-[#0F172A]">
-                                ${state.drivers.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
+                                ${state.drivers.filter(d => d.availability === 'Available' || d.availability === 'ðŸŸ¢ Available').map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
                             </select>
                             <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style="font-size:18px">expand_more</span>
                         </div>
@@ -1046,7 +1146,7 @@ function renderCreateTrip() {
                         <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Assign Vehicle</label>
                         <div class="relative">
                             <select id="vehicle" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all [&>option]:bg-[#0F172A]">
-                                ${state.vehicles.map(v => `<option value="${v.id}">${v.number}</option>`).join('')}
+                                ${state.vehicles.filter(v => v.availability === 'Available' || v.availability === 'ðŸŸ¢ Available').map(v => `<option value="${v.id}">${v.number}</option>`).join('')}
                             </select>
                             <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style="font-size:18px">expand_more</span>
                         </div>
@@ -1287,31 +1387,22 @@ function renderTripDetails() {
 
 async function updateStatus(tripId, newStatus) {
     try {
-        const trip = await getTripById(tripId);
-
-        if (!trip) {
-            alert("Trip not found.");
-            return;
-        }
-
-        trip.status = newStatus;
-
-        const updatedTrip = await updateTrip(tripId, trip);
-
-        console.log("Trip status updated in backend:", updatedTrip);
-
+        await updateTripStatus(tripId, newStatus);
+        console.log("Trip status updated in backend:", tripId, newStatus);
         await loadTripsFromBackend();
-
         render();
-
     } catch (error) {
         console.error("Failed to update trip status:", error);
-        alert("Failed to update trip status.");
+        alert("Failed to update trip status: " + (error.message || "Server error"));
+        await loadTripsFromBackend();
+        render();
     }
 }
 
 function renderDriverDashboard() {
-    const myTrips = state.trips.filter(t => t.driverName === state.currentUser.name);
+    const currentDriver = state.drivers.find(d => d.id === state.currentUser.id || d.name === state.currentUser.name);
+    const driverAvailability = currentDriver ? currentDriver.availability : (state.currentUser.availability || 'Available');
+    const myTrips = state.trips.filter(t => t.driverName === state.currentUser.name || t.driverId === state.currentUser.id);
 
     return `
         <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-12">
@@ -1320,15 +1411,24 @@ function renderDriverDashboard() {
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
                 <div>
                     <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Driver Portal</h1>
-                    <p class="text-sm text-slate-400 mt-1">Manage your assigned trips and update transport status</p>
+                    <p class="text-sm text-slate-400 mt-1">Manage your assigned trips and update your availability</p>
                 </div>
-                <div class="flex items-center gap-3 bg-[#0F172A] border border-white/10 px-4 py-2.5 rounded-xl shadow-lg">
-                    <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center font-black text-white shadow-lg shadow-primary/30">
-                        ${state.currentUser.name.charAt(0)}
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="flex items-center gap-2 bg-[#0F172A] border border-white/10 px-3 py-2 rounded-xl">
+                        ${renderBadge(driverAvailability)}
+                        <button onclick="toggleOwnDriverAvailability('${currentDriver ? currentDriver.id : state.currentUser.id}', '${driverAvailability}')" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold rounded-lg border border-white/10 transition-all flex items-center gap-1">
+                            <span class="material-symbols-outlined" style="font-size:14px">sync_alt</span>
+                            Change
+                        </button>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Driver</p>
-                        <p class="text-sm font-bold text-white leading-none mt-0.5">${state.currentUser.name}</p>
+                    <div class="flex items-center gap-3 bg-[#0F172A] border border-white/10 px-4 py-2.5 rounded-xl shadow-lg">
+                        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center font-black text-white shadow-lg shadow-primary/30">
+                            ${state.currentUser.name.charAt(0)}
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Driver</p>
+                            <p class="text-sm font-bold text-white leading-none mt-0.5">${state.currentUser.name}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1428,7 +1528,26 @@ function renderDriverDashboard() {
     `;
 }
 
+window.toggleOwnDriverAvailability = async function (id, currentStatus) {
+    const isCurrentlyAvailable = currentStatus === 'Available';
+    const newAvailable = !isCurrentlyAvailable;
+    try {
+        const updated = await updateDriverAvailability(id, newAvailable);
+        if (state.currentUser && (state.currentUser.id === id || state.currentUser.role === 'driver')) {
+            state.currentUser.availability = updated.availability || (newAvailable ? 'Available' : 'Not Available');
+            saveState();
+        }
+        await loadDriversFromBackend();
+        render();
+    } catch (e) {
+        console.error('Failed to update own availability:', e);
+        alert('Failed to update availability: ' + (e.message || 'Server error'));
+        await loadDriversFromBackend();
+        render();
+    }
+};
 function renderDrivers() {
+    const isAdminUser = state.currentUser && state.currentUser.role === 'owner';
     return `
         <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn pb-12">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1436,44 +1555,60 @@ function renderDrivers() {
                     <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Fleet Drivers</h1>
                     <p class="text-sm text-slate-400 mt-1">Manage your driver roster and current availability</p>
                 </div>
+                ${isAdminUser ? `<button onclick="navigate('create_driver')" class="bg-primary hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-all"><span class="material-symbols-outlined" style="font-size:18px">add</span> Add Driver</button>` : ''}
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                ${state.drivers.map(d => `
-                    <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-white/20 hover:-translate-y-1 transition-all group relative overflow-hidden">
-                        
-                        <!-- Top glow -->
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[40px] pointer-events-none group-hover:bg-primary/10 transition-colors"></div>
-                        
-                        <div class="flex items-start justify-between mb-6 relative z-10">
-                            <div class="flex items-center gap-4">
-                                <div class="w-14 h-14 rounded-2xl bg-[#090D16] border border-white/5 flex items-center justify-center shadow-inner">
-                                    <span class="text-xl font-black text-slate-300 group-hover:text-primary transition-colors">${d.name.charAt(0)}</span>
+
+            ${state.drivers.length === 0 ? `
+                <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center shadow-xl">
+                    <span class="material-symbols-outlined text-slate-600 text-6xl mb-4">group_off</span>
+                    <h3 class="text-xl font-bold text-white mb-2">No Drivers Found</h3>
+                    <p class="text-slate-400 text-sm">No drivers are registered yet.</p>
+                </div>
+            ` : `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${state.drivers.map(d => `
+                        <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-white/20 hover:-translate-y-1 transition-all group relative overflow-hidden">
+
+                            <!-- Top glow -->
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[40px] pointer-events-none group-hover:bg-primary/10 transition-colors"></div>
+
+                            <div class="flex items-start justify-between mb-6 relative z-10">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 rounded-2xl bg-[#090D16] border border-white/5 flex items-center justify-center shadow-inner">
+                                        <span class="text-xl font-black text-slate-300 group-hover:text-primary transition-colors">${d.name.charAt(0)}</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-lg text-white group-hover:text-primary transition-colors">${d.name}</h3>
+                                        <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">${d.id}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 class="font-bold text-lg text-white group-hover:text-primary transition-colors">${d.name}</h3>
-                                    <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">${d.id}</p>
+                                ${renderBadge(d.availability)}
+                            </div>
+
+                            <div class="pt-4 border-t border-white/5 relative z-10">
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-xs text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-slate-600" style="font-size:14px">call</span>
+                                        Phone
+                                    </span>
+                                    <span class="text-sm font-semibold text-white">${d.phone}</span>
                                 </div>
-                            </div>
-                            ${renderBadge(d.availability)}
-                        </div>
-                        
-                        <div class="pt-4 border-t border-white/5 relative z-10">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-slate-600" style="font-size:14px">call</span>
-                                    Phone
-                                </span>
-                                <span class="text-sm font-semibold text-white">${d.phone}</span>
+                                ${isAdminUser ? `
+                                    <div class="flex gap-2 w-full mt-3">
+                                        <button onclick="toggleDriverAvailability('${d.id}', '${d.availability}')" class="flex-1 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg transition-all">Toggle Status</button>
+                                        <button onclick="deleteDriverAdmin('${d.id}')" class="flex-1 bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold py-2 rounded-lg transition-all">Delete</button>
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
-                    </div>
-                `).join('')}
-            </div>
+                    `).join('')}
+                </div>
+            `}
         </div>
     `;
 }
 function renderVehicles() {
+    const isAdminUser = state.currentUser && state.currentUser.role === 'owner';
     return `
         <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn pb-12">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1481,8 +1616,9 @@ function renderVehicles() {
                     <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Fleet Vehicles</h1>
                     <p class="text-sm text-slate-400 mt-1">Monitor transport inventory and deployment status</p>
                 </div>
+                ${isAdminUser ? `<button onclick="navigate('create_vehicle')" class="bg-primary hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-all"><span class="material-symbols-outlined" style="font-size:18px">add</span> Add Vehicle</button>` : ''}
             </div>
-            
+
             ${state.vehicles.length === 0 ? `
                 <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center shadow-xl">
                     <span class="material-symbols-outlined text-slate-600 text-6xl mb-4">no_crash</span>
@@ -1493,10 +1629,10 @@ function renderVehicles() {
                 <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     ${state.vehicles.map(v => `
                         <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-white/20 hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col h-full">
-                            
+
                             <!-- Ambient glow -->
                             <div class="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-[50px] pointer-events-none group-hover:bg-primary/10 transition-colors"></div>
-                            
+
                             <!-- Card Header -->
                             <div class="flex items-start justify-between mb-6 relative z-10">
                                 <div>
@@ -1508,7 +1644,7 @@ function renderVehicles() {
                                 </div>
                                 ${renderBadge(v.availability)}
                             </div>
-                            
+
                             <!-- Card Body -->
                             <div class="space-y-4 flex-grow relative z-10">
                                 <!-- Type -->
@@ -1516,7 +1652,7 @@ function renderVehicles() {
                                     <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1">Vehicle Type</p>
                                     <p class="text-sm font-semibold text-white">${v.type}</p>
                                 </div>
-                                
+
                                 <div class="grid grid-cols-2 gap-4">
                                     <!-- Capacity -->
                                     <div class="bg-[#090D16] rounded-xl p-4 border border-white/5">
@@ -1526,7 +1662,7 @@ function renderVehicles() {
                                         </p>
                                         <p class="text-sm font-semibold text-white">${v.capacity}</p>
                                     </div>
-                                    
+
                                     <!-- Assigned Driver -->
                                     <div class="bg-[#090D16] rounded-xl p-4 border border-white/5">
                                         <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-1 flex items-center gap-1">
@@ -1537,6 +1673,14 @@ function renderVehicles() {
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Admin Actions -->
+                            ${isAdminUser ? `
+                                <div class="flex gap-2 w-full mt-4 pt-4 border-t border-white/5 relative z-10">
+                                    <button onclick="toggleVehicleAvailability('${v.id}', '${v.availability}')" class="flex-1 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold py-2 rounded-lg transition-all">Toggle Status</button>
+                                    <button onclick="deleteVehicleAdmin('${v.id}')" class="flex-1 bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white text-xs font-semibold py-2 rounded-lg transition-all">Delete</button>
+                                </div>
+                            ` : ''}
                         </div>
                     `).join('')}
                 </div>
@@ -1746,10 +1890,167 @@ function renderSettings() {
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
-    render();
-    loadTripsFromBackend();
-    loadDriversFromBackend();
-    loadCustomersFromBackend();
-    loadVehiclesFromBackend();
-    loadNotificationsFromBackend();
-});
+    const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('tripflow_token');
+    const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : state.currentUser;
+
+    if (token && storedUser) {
+        state.currentUser = storedUser;
+        state.currentRoute = (storedUser.role || '').toLowerCase() === 'owner' ? 'dashboard' : 'driver_dashboard';
+        render();
+        loadTripsFromBackend();
+        loadDriversFromBackend();
+        loadCustomersFromBackend();
+        loadVehiclesFromBackend();
+        loadNotificationsFromBackend();
+    } else {
+        state.currentUser = null;
+        state.showLogin = false;
+        render();
+    }
+});window.handleCreateDriver = async function (e) {
+    e.preventDefault();
+    const id = 'DRV-' + Math.floor(100 + Math.random() * 900);
+    const newDriver = {
+        id: id,
+        name: document.getElementById('drv_name').value,
+        phone: document.getElementById('drv_phone').value,
+        license: document.getElementById('drv_license').value,
+        availability: 'Available',
+        completedTrips: 0
+    };
+    try {
+        await apiPost('/drivers', newDriver);
+        await loadDriversFromBackend();
+        navigate('drivers');
+    } catch (error) {
+        alert('Failed to create driver: ' + error.message);
+    }
+};
+
+window.handleCreateVehicle = async function (e) {
+    e.preventDefault();
+    const id = 'VEH-' + Math.floor(100 + Math.random() * 900);
+    const newVehicle = {
+        id: id,
+        number: document.getElementById('veh_number').value,
+        type: document.getElementById('veh_type').value,
+        capacity: document.getElementById('veh_capacity').value,
+        driver: 'Unassigned',
+        availability: 'Available'
+    };
+    try {
+        await apiPost('/vehicles', newVehicle);
+        await loadVehiclesFromBackend();
+        navigate('vehicles');
+    } catch (error) {
+        alert('Failed to create vehicle: ' + error.message);
+    }
+};
+
+window.deleteDriverAdmin = async function (id) {
+    if(!confirm('Delete this driver?')) return;
+    try {
+        await apiDelete('/drivers/' + id);
+        await loadDriversFromBackend();
+    } catch(e) {
+        alert('Failed to delete');
+    }
+};
+
+window.deleteVehicleAdmin = async function (id) {
+    if(!confirm('Delete this vehicle?')) return;
+    try {
+        await apiDelete('/vehicles/' + id);
+        await loadVehiclesFromBackend();
+    } catch(e) {
+        alert('Failed to delete');
+    }
+};
+
+window.toggleDriverAvailability = async function (id, currentStatus) {
+    const isCurrentlyAvailable = currentStatus === 'Available';
+    const newAvailable = !isCurrentlyAvailable;
+    try {
+        await updateDriverAvailability(id, newAvailable);
+        await loadDriversFromBackend();
+    } catch(e) {
+        console.error('Failed to update driver status:', e);
+        alert('Failed to update status: ' + (e.message || 'Server error'));
+        await loadDriversFromBackend();
+    }
+};
+
+window.toggleVehicleAvailability = async function (id, currentStatus) {
+    const isCurrentlyAvailable = currentStatus === 'Available';
+    const newAvailable = !isCurrentlyAvailable;
+    try {
+        await updateVehicleAvailability(id, newAvailable);
+        await loadVehiclesFromBackend();
+    } catch(e) {
+        console.error('Failed to update vehicle status:', e);
+        alert('Failed to update status: ' + (e.message || 'Server error'));
+        await loadVehiclesFromBackend();
+    }
+};
+
+function renderCreateDriver() {
+    return `
+        <div class="max-w-3xl mx-auto space-y-5 animate-fadeIn pb-12">
+            <div class="flex items-center gap-4">
+                <button onclick="navigate('drivers')" class="w-10 h-10 flex items-center justify-center bg-[#0F172A] border border-white/10 hover:border-white/20 text-slate-400 hover:text-white rounded-xl">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h1 class="text-xl font-bold text-white">Add Driver</h1>
+            </div>
+            <form onsubmit="handleCreateDriver(event)" class="bg-[#0F172A] rounded-2xl border border-white/10 p-6 space-y-6">
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Driver Name *</label>
+                    <input type="text" id="drv_name" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Phone *</label>
+                    <input type="text" id="drv_phone" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">License *</label>
+                    <input type="text" id="drv_license" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                </div>
+                <button type="submit" class="w-full py-3 bg-primary hover:bg-orange-500 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span> Save Driver
+                </button>
+            </form>
+        </div>
+    `;
+}
+
+function renderCreateVehicle() {
+    return `
+        <div class="max-w-3xl mx-auto space-y-5 animate-fadeIn pb-12">
+            <div class="flex items-center gap-4">
+                <button onclick="navigate('vehicles')" class="w-10 h-10 flex items-center justify-center bg-[#0F172A] border border-white/10 hover:border-white/20 text-slate-400 hover:text-white rounded-xl">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h1 class="text-xl font-bold text-white">Add Vehicle</h1>
+            </div>
+            <form onsubmit="handleCreateVehicle(event)" class="bg-[#0F172A] rounded-2xl border border-white/10 p-6 space-y-6">
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Vehicle Number *</label>
+                    <input type="text" id="veh_number" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Type *</label>
+                    <input type="text" id="veh_type" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-bold uppercase mb-2">Capacity *</label>
+                    <input type="text" id="veh_capacity" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white">
+                </div>
+                <button type="submit" class="w-full py-3 bg-primary hover:bg-orange-500 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span> Save Vehicle
+                </button>
+            </form>
+        </div>
+    `;
+}
+
+

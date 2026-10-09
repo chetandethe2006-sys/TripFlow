@@ -6,19 +6,10 @@
 // Get all customers
 async function getCustomers() {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/customers`
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch customers");
-        }
-
-        return await response.json();
-
+        return await apiGet("/customers");
     } catch (error) {
         console.error("Error fetching customers:", error);
-        return [];
+        throw error;
     }
 }
 
@@ -26,19 +17,10 @@ async function getCustomers() {
 // Get customer by ID
 async function getCustomerById(customerId) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/customers/${customerId}`
-        );
-
-        if (!response.ok) {
-            throw new Error("Customer not found");
-        }
-
-        return await response.json();
-
+        return await apiGet(`/customers/${customerId}`);
     } catch (error) {
         console.error("Error fetching customer:", error);
-        return null;
+        throw error;
     }
 }
 
@@ -46,66 +28,21 @@ async function getCustomerById(customerId) {
 // Create new customer
 async function createCustomer(customerData) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/customers`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(customerData)
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to create customer");
-        }
-
-        return await response.json();
-
+        return await apiPost("/customers", customerData);
     } catch (error) {
         console.error("Error creating customer:", error);
-        return null;
+        throw error;
     }
 }
 
 
 // Update customer
-async function updateCustomer(
-    customerId,
-    customerData
-) {
+async function updateCustomer(customerId, customerData) {
     try {
-
-        const response = await fetch(
-            `${API_BASE_URL}/customers/${customerId}`,
-            {
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(customerData)
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to update customer");
-        }
-
-        return await response.json();
-
+        return await apiPut(`/customers/${customerId}`, customerData);
     } catch (error) {
-
-        console.error(
-            "Error updating customer:",
-            error
-        );
-
-        return null;
+        console.error("Error updating customer:", error);
+        throw error;
     }
 }
 
@@ -113,28 +50,10 @@ async function updateCustomer(
 // Delete customer
 async function deleteCustomer(customerId) {
     try {
-
-        const response = await fetch(
-            `${API_BASE_URL}/customers/${customerId}`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to delete customer");
-        }
-
-        return true;
-
+        return await apiDelete(`/customers/${customerId}`);
     } catch (error) {
-
-        console.error(
-            "Error deleting customer:",
-            error
-        );
-
-        return false;
+        console.error("Error deleting customer:", error);
+        throw error;
     }
 }
 
@@ -142,26 +61,9 @@ async function deleteCustomer(customerId) {
 // Get customer's trips
 async function getCustomerTrips(customerId) {
     try {
-
-        const response = await fetch(
-            `${API_BASE_URL}/customers/${customerId}/trips`
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                "Failed to fetch customer trips"
-            );
-        }
-
-        return await response.json();
-
+        return await apiGet(`/customers/${customerId}/trips`);
     } catch (error) {
-
-        console.error(
-            "Error fetching customer trips:",
-            error
-        );
-
-        return [];
+        console.error("Error fetching customer trips:", error);
+        throw error;
     }
 }

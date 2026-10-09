@@ -64,9 +64,20 @@ function logoutUser() {
         "tripflow_token"
     );
 
+    localStorage.removeItem(
+        "tf_user"
+    );
+
     console.log("User logged out");
 
-    window.location.reload();
+    if (typeof state !== 'undefined') {
+        state.currentUser = null;
+        state.showLogin = false;
+        state.currentRoute = 'dashboard';
+        if (typeof render === 'function') {
+            render();
+        }
+    }
 }
 
 
@@ -103,5 +114,84 @@ function isOwner() {
 
 // Check driver role
 function isDriver() {
-    return getUserRole() === "DRIVER";
+    const role = getUserRole();
+    return role === "DRIVER" || role === "driver";
 }
+
+// Authenticate Driver with Backend
+async function driverLogin(identifier, password = "") {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/driver-login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                identifier: identifier,
+                password: password || undefined
+            })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || "Driver login failed");
+        }
+
+        const data = await response.json();
+        if (data.token) {
+            saveToken(data.token);
+        }
+        
+        const user = {
+            id: data.driverId || data.id,
+            name: data.name,
+            role: "DRIVER",
+            license: data.license,
+            phone: data.phone,
+            availability: data.availability,
+            completedTrips: data.completedTrips
+        };
+        saveUser(user);
+        return user;
+    } catch (error) {
+        console.error("Driver login error:", error);
+        throw error;
+    }
+}
+
+// Authenticate Owner with Backend
+async function ownerLogin(username = "owner", password = "password") {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || "Owner login failed");
+        }
+
+        const data = await response.json();
+        if (data.token) {
+            saveToken(data.token);
+        }
+
+        const user = {
+            id: data.username || "OWNER",
+            name: data.name || "Admin Owner",
+            role: "OWNER"
+        };
+        saveUser(user);
+        return user;
+    } catch (error) {
+        console.error("Owner login error:", error);
+        throw error;
+    }
+}

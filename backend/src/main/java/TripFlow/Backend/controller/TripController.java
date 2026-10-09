@@ -4,6 +4,7 @@ import TripFlow.Backend.model.Trip;
 import TripFlow.Backend.service.TripService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class TripController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PreAuthorize("hasRole('OWNER')")
     @PutMapping("/{id}")
     public ResponseEntity<Trip> updateTrip(@PathVariable String id, @RequestBody Trip trip) {
         try {
@@ -47,6 +49,41 @@ public class TripController {
         }
     }
 
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateTripStatus(
+            @PathVariable String id,
+            @RequestBody java.util.Map<String, String> payload,
+            java.security.Principal principal,
+            org.springframework.security.core.Authentication authentication
+    ) {
+        java.util.Optional<Trip> optTrip = tripService.getTripById(id);
+        if (optTrip.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Trip existingTrip = optTrip.get();
+        boolean isOwner = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
+
+        if (!isOwner) {
+            String currentDriverId = principal != null ? principal.getName() : "";
+            if (existingTrip.getDriverId() == null || !existingTrip.getDriverId().equalsIgnoreCase(currentDriverId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(java.util.Map.of("error", "Drivers can only update status for their assigned trips"));
+            }
+        }
+
+        String newStatus = payload.get("status");
+        if (newStatus != null && !newStatus.isBlank()) {
+            existingTrip.setStatus(newStatus);
+            Trip saved = tripService.updateTrip(id, existingTrip);
+            return ResponseEntity.ok(saved);
+        }
+
+        return ResponseEntity.badRequest().body(java.util.Map.of("error", "Status field is required"));
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrip(@PathVariable String id) {
         try {

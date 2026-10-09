@@ -5,17 +5,10 @@
 // Get all drivers
 async function getDrivers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/drivers`);
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch drivers");
-        }
-
-        return await response.json();
-
+        return await apiGet("/drivers");
     } catch (error) {
         console.error("Error fetching drivers:", error);
-        return [];
+        throw error;
     }
 }
 
@@ -23,19 +16,10 @@ async function getDrivers() {
 // Get driver by ID
 async function getDriverById(driverId) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/drivers/${driverId}`
-        );
-
-        if (!response.ok) {
-            throw new Error("Driver not found");
-        }
-
-        return await response.json();
-
+        return await apiGet(`/drivers/${driverId}`);
     } catch (error) {
         console.error("Error fetching driver:", error);
-        return null;
+        throw error;
     }
 }
 
@@ -43,28 +27,10 @@ async function getDriverById(driverId) {
 // Create new driver
 async function createDriver(driverData) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/drivers`,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(driverData)
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to create driver");
-        }
-
-        return await response.json();
-
+        return await apiPost("/drivers", driverData);
     } catch (error) {
         console.error("Error creating driver:", error);
-        return null;
+        throw error;
     }
 }
 
@@ -72,28 +38,10 @@ async function createDriver(driverData) {
 // Update driver
 async function updateDriver(driverId, driverData) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/drivers/${driverId}`,
-            {
-                method: "PUT",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify(driverData)
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to update driver");
-        }
-
-        return await response.json();
-
+        return await apiPut(`/drivers/${driverId}`, driverData);
     } catch (error) {
         console.error("Error updating driver:", error);
-        return null;
+        throw error;
     }
 }
 
@@ -101,22 +49,10 @@ async function updateDriver(driverId, driverData) {
 // Delete driver
 async function deleteDriver(driverId) {
     try {
-        const response = await fetch(
-            `${API_BASE_URL}/drivers/${driverId}`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("Failed to delete driver");
-        }
-
-        return true;
-
+        return await apiDelete(`/drivers/${driverId}`);
     } catch (error) {
         console.error("Error deleting driver:", error);
-        return false;
+        throw error;
     }
 }
 
@@ -124,16 +60,11 @@ async function deleteDriver(driverId) {
 // Change driver availability
 async function updateDriverAvailability(driverId, availability) {
     try {
-        return await updateDriver(driverId, {
-            availability: availability
-        });
-
+        const isAvailable = availability === "Available" || availability === true;
+        return await apiPut(`/drivers/${driverId}/availability`, { available: isAvailable });
     } catch (error) {
-        console.error(
-            "Error updating driver availability:",
-            error
-        );
-
-        return null;
+        console.error("Error updating driver availability:", error);
+        throw error;
     }
 }
+
