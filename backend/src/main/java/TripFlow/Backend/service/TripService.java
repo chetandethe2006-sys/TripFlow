@@ -80,6 +80,22 @@ public class TripService {
         return saved;
     }
 
+    public Trip updateTripStatus(String id, String newStatus) {
+        Trip existing = tripRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trip not found with id: " + id));
+
+        String oldStatus = existing.getStatus();
+        existing.setStatus(newStatus);
+        
+        Trip saved = tripRepository.save(existing);
+        
+        if (oldStatus == null ? saved.getStatus() != null : !oldStatus.equals(saved.getStatus())) {
+            emailService.sendTripStatusUpdateEmail(saved.getId(), saved.getCustomerEmail(), oldStatus, saved.getStatus());
+        }
+        
+        return saved;
+    }
+
     public void deleteTrip(String id) {
         if (!tripRepository.existsById(id)) {
             throw new RuntimeException("Trip not found with id: " + id);
