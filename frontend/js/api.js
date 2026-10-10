@@ -6,7 +6,7 @@ const API_BASE_URL = "http://localhost:8080/api";
 
 function getAuthHeaders(extraHeaders = {}) {
     const headers = { ...extraHeaders };
-    const token = typeof getToken === "function" ? getToken() : localStorage.getItem("tripflow_token");
+    const token = typeof getToken === "function" ? getToken() : (sessionStorage.getItem("tripflow_token") || localStorage.getItem("tripflow_token"));
     if (token) {
         headers["Authorization"] = `Bearer ${token}`;
     }
@@ -15,14 +15,20 @@ function getAuthHeaders(extraHeaders = {}) {
 
 function handleUnauthorized() {
     console.warn("Unauthorized request, clearing session");
-    localStorage.removeItem("tripflow_token");
-    localStorage.removeItem("tripflow_current_user");
-    localStorage.removeItem("tf_user");
-    if (typeof state !== "undefined") {
-        state.currentUser = null;
-        state.showLogin = false;
-        if (typeof render === "function") {
-            render();
+    if (typeof logoutUser === "function") {
+        logoutUser();
+    } else {
+        sessionStorage.removeItem("tripflow_token");
+        sessionStorage.removeItem("tripflow_current_user");
+        localStorage.removeItem("tripflow_token");
+        localStorage.removeItem("tripflow_current_user");
+        localStorage.removeItem("tf_user");
+        if (typeof state !== "undefined") {
+            state.currentUser = null;
+            state.showLogin = false;
+            if (typeof render === "function") {
+                render();
+            }
         }
     }
 }

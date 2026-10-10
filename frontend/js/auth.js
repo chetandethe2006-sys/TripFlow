@@ -2,19 +2,59 @@
 // TripFlow - Authentication Module
 // ============================================
 
+// Validate JWT structure and expiration
+function isTokenValid(token) {
+    if (!token || typeof token !== "string") {
+        return false;
+    }
 
-// Save logged-in user
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+        return false;
+    }
+
+    try {
+        const base64Url = parts[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split("")
+                .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                .join("")
+        );
+        const payload = JSON.parse(jsonPayload);
+
+        if (payload && payload.exp) {
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (payload.exp < currentTime) {
+                console.warn("JWT token has expired");
+                return false;
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.warn("Invalid JWT token format:", error);
+        return false;
+    }
+}
+
+// Save logged-in user to sessionStorage
 function saveUser(user) {
-    localStorage.setItem(
+    sessionStorage.setItem(
         "tripflow_current_user",
         JSON.stringify(user)
     );
 }
 
-
-// Get logged-in user
+// Get logged-in user from sessionStorage
 function getCurrentUser() {
-    const user = localStorage.getItem(
+    const token = getToken();
+    if (!token) {
+        return null;
+    }
+
+    const user = sessionStorage.getItem(
         "tripflow_current_user"
     );
 
@@ -24,93 +64,90 @@ function getCurrentUser() {
 
     try {
         return JSON.parse(user);
-
     } catch (error) {
         console.error("Invalid user data:", error);
         return null;
     }
 }
 
-
-// Check if user is logged in
+// Check if user is logged in with valid token
 function isLoggedIn() {
-    return getCurrentUser() !== null;
+    return getCurrentUser() !== null && getToken() !== null;
 }
-
 
 // Get user role
 function getUserRole() {
     const user = getCurrentUser();
-
     return user ? user.role : null;
 }
-
 
 // Login user
 function loginUser(user) {
     saveUser(user);
-
     console.log("User logged in:", user);
 }
 
-
 // Logout user
 function logoutUser() {
-    localStorage.removeItem(
-        "tripflow_current_user"
-    );
-
-    localStorage.removeItem(
-        "tripflow_token"
-    );
-
-    localStorage.removeItem(
-        "tf_user"
-    );
+    sessionStorage.removeItem("tripflow_current_user");
+    sessionStorage.removeItem("tripflow_token");
+    localStorage.removeItem("tripflow_current_user");
+    localStorage.removeItem("tripflow_token");
+    localStorage.removeItem("tf_user");
 
     console.log("User logged out");
 
-    if (typeof state !== 'undefined') {
+    if (typeof state !== "undefined") {
         state.currentUser = null;
         state.showLogin = false;
-        state.currentRoute = 'dashboard';
-        if (typeof render === 'function') {
+        state.currentRoute = "dashboard";
+        if (typeof render === "function") {
             render();
         }
     }
 }
 
-
-// Save authentication token
+// Save authentication token to sessionStorage
 function saveToken(token) {
-    localStorage.setItem(
+    sessionStorage.setItem(
         "tripflow_token",
         token
     );
 }
 
-
-// Get authentication token
+// Get authentication token from sessionStorage with validity check
 function getToken() {
-    return localStorage.getItem(
+    const token = sessionStorage.getItem(
         "tripflow_token"
     );
-}
 
+    if (!token) {
+        return null;
+    }
+
+    if (!isTokenValid(token)) {
+        removeToken();
+        sessionStorage.removeItem("tripflow_current_user");
+        return null;
+    }
+
+    return token;
+}
 
 // Remove authentication token
 function removeToken() {
+    sessionStorage.removeItem(
+        "tripflow_token"
+    );
     localStorage.removeItem(
         "tripflow_token"
     );
 }
 
-
 // Check owner role
 function isOwner() {
     return getUserRole() === "OWNER";
 }
-
 
 // Check driver role
 function isDriver() {
@@ -146,14 +183,14 @@ async function authLogin(loginId, password) {
             saveToken(data.token);
         }
 
-        const role = (data.role || (data.id === 'OWNER' ? 'OWNER' : 'DRIVER')).toUpperCase();
+        const role = (data.role || (data.id === "OWNER" ? "OWNER" : "DRIVER")).toUpperCase();
         const user = {
             id: data.id || data.driverId || loginId,
-            name: data.name || (role === 'OWNER' ? 'Admin Owner' : 'Driver'),
+            name: data.name || (role === "OWNER" ? "Admin Owner" : "Driver"),
             role: role,
-            license: data.license || '',
-            phone: data.phone || '',
-            availability: data.availability || 'Available',
+            license: data.license || "",
+            phone: data.phone || "",
+            availability: data.availability || "Available",
             completedTrips: data.completedTrips || 0
         };
 

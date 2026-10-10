@@ -1,14 +1,7 @@
 // --- MOCK DATA & STATE ---
 let state = {
-    currentUser: (() => {
-        try {
-            const u = localStorage.getItem('tripflow_current_user') || localStorage.getItem('tf_user');
-            return u ? JSON.parse(u) : null;
-        } catch (e) {
-            return null;
-        }
-    })(),
-    trips: JSON.parse(localStorage.getItem('tf_trips')) || [
+    currentUser: null,
+    trips: [
         { id: "TRP1024", customer: "Acme Logistics Corp", customerEmail: "logistics@acme.com", customerPhone: "+1 (555) 234-5678", pickup: "Warehouse A, Chicago, IL", destination: "Distribution Hub, Dallas, TX", goods: "Industrial Steel Pipes", quantity: "12 Pallets", pickupDate: "2026-06-01", expectedDelivery: "2026-06-04", driverId: "DRV-01", driverName: "Amit Sharma", vehicleNumber: "IL-04-AB-9876", status: "In Transit", notes: "Handle with care.", date: "2026-06-01" },
         { id: "TRP1023", customer: "Global Retailers Inc", customerEmail: "supply@globalretail.com", customerPhone: "+1 (555) 876-5432", pickup: "Port Terminal 4, Miami, FL", destination: "Retail Center, Atlanta, GA", goods: "Consumer Electronics", quantity: "25 Cartons", pickupDate: "2026-05-28", expectedDelivery: "2026-05-30", driverId: "DRV-02", driverName: "Rajesh Kumar", vehicleNumber: "FL-08-XY-4321", status: "Delivered", notes: "Direct handover.", date: "2026-05-28" },
         { id: "TRP1025", customer: "Apex Agro Foods", customerEmail: "orders@apexagro.com", customerPhone: "+1 (555) 345-6789", pickup: "Cold Storage 2, Omaha, NE", destination: "Supermarket Chain, Denver, CO", goods: "Frozen Produce", quantity: "8 Tons", pickupDate: "2026-06-03", expectedDelivery: "2026-06-06", driverId: "DRV-03", driverName: "Suresh Patel", vehicleNumber: "NE-12-ZZ-5566", status: "Driver Assigned", notes: "Maintain temp.", date: "2026-06-02" }
@@ -28,7 +21,7 @@ let state = {
         { id: "CUS-02", name: "Global Retailers Inc", phone: "+1 (555) 876-5432", email: "supply@globalretail.com", totalTrips: 28, status: "Active" },
         { id: "CUS-03", name: "Apex Agro Foods", phone: "+1 (555) 345-6789", email: "orders@apexagro.com", totalTrips: 9, status: "Active" }
     ],
-    notifications: JSON.parse(localStorage.getItem('tf_notifs')) || [
+    notifications: [
         { id: "NOT-1", text: "Trip #TRP1024 status changed to In Transit.", time: "10 mins ago", read: false },
         { id: "NOT-2", text: "Driver Rajesh Kumar completed Trip #TRP1018.", time: "2 hours ago", read: false }
     ],
@@ -39,13 +32,14 @@ let state = {
 
 function saveState() {
     if (state.currentUser) {
-        localStorage.setItem('tripflow_current_user', JSON.stringify(state.currentUser));
+        if (typeof saveUser === 'function') {
+            saveUser(state.currentUser);
+        }
     } else {
+        sessionStorage.removeItem('tripflow_current_user');
         localStorage.removeItem('tripflow_current_user');
         localStorage.removeItem('tf_user');
     }
-    localStorage.setItem('tf_trips', JSON.stringify(state.trips));
-    localStorage.setItem('tf_notifs', JSON.stringify(state.notifications));
 }
 
 function navigate(route, tripId = null) {
@@ -817,13 +811,19 @@ function renderSidebar() {
 }
 
 window.logout = function () {
-    state.currentUser = null;
-    if (typeof removeToken === 'function') removeToken();
-    localStorage.removeItem('tripflow_token');
-    localStorage.removeItem('tripflow_current_user');
-    localStorage.removeItem('tf_user');
-    state.showLogin = false;
-    render();
+    if (typeof logoutUser === 'function') {
+        logoutUser();
+    } else {
+        sessionStorage.removeItem('tripflow_token');
+        sessionStorage.removeItem('tripflow_current_user');
+        localStorage.removeItem('tripflow_token');
+        localStorage.removeItem('tripflow_current_user');
+        localStorage.removeItem('tf_user');
+        state.currentUser = null;
+        state.showLogin = false;
+        state.currentRoute = 'dashboard';
+        render();
+    }
 };
 
 function renderNavbar() {
@@ -1863,18 +1863,25 @@ function renderSettings() {
 
 // Initialize on load
 window.addEventListener('DOMContentLoaded', () => {
-    const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('tripflow_token');
-    const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : state.currentUser;
+    // Clear legacy localStorage keys that may have lingering mock or unauthenticated owner state
+    localStorage.removeItem('tf_user');
+    localStorage.removeItem('tripflow_current_user');
+    localStorage.removeItem('tripflow_token');
 
-    if (token && storedUser) {
+    const token = typeof getToken === 'function' ? getToken() : sessionStorage.getItem('tripflow_token');
+    const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+
+    if (token && storedUser && typeof isTokenValid === 'function' && isTokenValid(token)) {
         state.currentUser = storedUser;
         state.currentRoute = (storedUser.role || '').toLowerCase() === 'owner' ? 'dashboard' : 'driver_dashboard';
         render();
         loadTripsFromBackend();
         loadDriversFromBackend();
-        loadCustomersFromBackend();
-        loadVehiclesFromBackend();
-        loadNotificationsFromBackend();
+        if ((storedUser.role || '').toLowerCase() === 'owner') {
+            loadCustomersFromBackend();
+            loadVehiclesFromBackend();
+            loadNotificationsFromBackend();
+        }
     } else {
         state.currentUser = null;
         state.showLogin = false;
