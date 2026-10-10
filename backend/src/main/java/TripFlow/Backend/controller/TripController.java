@@ -75,8 +75,7 @@ public class TripController {
 
         String newStatus = payload.get("status");
         if (newStatus != null && !newStatus.isBlank()) {
-            existingTrip.setStatus(newStatus);
-            Trip saved = tripService.updateTrip(id, existingTrip);
+            Trip saved = tripService.updateTripStatus(id, newStatus);
             return ResponseEntity.ok(saved);
         }
 
