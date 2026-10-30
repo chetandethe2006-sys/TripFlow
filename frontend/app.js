@@ -21,10 +21,7 @@ let state = {
         { id: "CUS-02", name: "Global Retailers Inc", phone: "+1 (555) 876-5432", email: "supply@globalretail.com", totalTrips: 28, status: "Active" },
         { id: "CUS-03", name: "Apex Agro Foods", phone: "+1 (555) 345-6789", email: "orders@apexagro.com", totalTrips: 9, status: "Active" }
     ],
-    notifications: [
-        { id: "NOT-1", text: "Trip #TRP1024 status changed to In Transit.", time: "10 mins ago", read: false },
-        { id: "NOT-2", text: "Driver Rajesh Kumar completed Trip #TRP1018.", time: "2 hours ago", read: false }
-    ],
+    notifications: [],
     currentRoute: 'dashboard',
     selectedTripId: null,
     showLogin: false
@@ -40,6 +37,9 @@ function saveState() {
         localStorage.removeItem('tripflow_current_user');
         localStorage.removeItem('tf_user');
     }
+
+    localStorage.setItem('tf_trips', JSON.stringify(state.trips));
+    // Do NOT persist notifications to localStorage - always load fresh from backend
 }
 
 function navigate(route, tripId = null) {
@@ -762,14 +762,12 @@ function renderSidebar() {
         { route: 'trips', label: 'Trips', icon: '<span class="material-symbols-outlined" style="font-size:18px">local_shipping</span>' },
         { route: 'drivers', label: 'Drivers', icon: '<span class="material-symbols-outlined" style="font-size:18px">group</span>' },
         { route: 'vehicles', label: 'Vehicles', icon: '<span class="material-symbols-outlined" style="font-size:18px">directions_car</span>' },
-        { route: 'customers', label: 'Customers', icon: '<span class="material-symbols-outlined" style="font-size:18px">business</span>' },
         { route: 'notifications', label: 'Notifications', icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread },
         { route: 'settings', label: 'Settings', icon: '<span class="material-symbols-outlined" style="font-size:18px">settings</span>' }
     ];
 
     const driverLinks = [
-        { route: 'driver_dashboard', label: 'My Assigned Trips', icon: '<span class="material-symbols-outlined" style="font-size:18px">route</span>' },
-        { route: 'notifications', label: 'Notifications', icon: '<span class="material-symbols-outlined" style="font-size:18px">notifications</span>', badge: unread }
+        { route: 'driver_dashboard', label: 'My Assigned Trips', icon: '<span class="material-symbols-outlined" style="font-size:18px">route</span>' }
     ];
 
     const links = isOwner ? ownerLinks : driverLinks;
@@ -861,7 +859,6 @@ function renderPageContent() {
         case 'trip_details': return renderTripDetails();
         case 'drivers': return renderDrivers();
         case 'vehicles': return renderVehicles();
-        case 'customers': return renderCustomers();
         case 'notifications': return renderNotifications();
         case 'settings': return renderSettings();
         case 'create_driver': return renderCreateDriver();
@@ -1662,63 +1659,8 @@ function renderVehicles() {
     `;
 }
 
-function renderCustomers() {
-    return `
-        <div class="max-w-6xl mx-auto space-y-8 animate-fadeIn pb-12">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Customers</h1>
-                    <p class="text-sm text-slate-400 mt-1">Manage client relationships and contact records</p>
-                </div>
-            </div>
-            
-            ${state.customers.length === 0 ? `
-                <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-12 text-center flex flex-col items-center shadow-xl">
-                    <span class="material-symbols-outlined text-slate-600 text-6xl mb-4">group_off</span>
-                    <h3 class="text-xl font-bold text-white mb-2">No Customers Found</h3>
-                    <p class="text-slate-400 text-sm">You have not added any clients yet.</p>
-                </div>
-            ` : `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    ${state.customers.map(c => `
-                        <div class="bg-[#0F172A] border border-white/10 rounded-3xl p-6 shadow-xl hover:border-white/20 hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col h-full">
-                            
-                            <!-- Ambient glow -->
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-[40px] pointer-events-none group-hover:bg-blue-500/10 transition-colors"></div>
-                            
-                            <div class="flex items-start justify-between mb-6 relative z-10">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shadow-inner">
-                                        <span class="text-lg font-black text-blue-400">${c.name.charAt(0)}</span>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-bold text-lg text-white truncate max-w-[150px]" title="${c.name}">${c.name}</h3>
-                                        <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">${c.id}</p>
-                                    </div>
-                                </div>
-                                ${renderBadge(c.status)}
-                            </div>
-                            
-                            <div class="space-y-4 flex-grow relative z-10">
-                                <div class="bg-[#090D16] rounded-xl p-4 border border-white/5 space-y-3">
-                                    <div class="flex items-center gap-3 text-slate-300">
-                                        <span class="material-symbols-outlined text-slate-500" style="font-size:16px">mail</span>
-                                        <span class="text-xs font-medium truncate" title="${c.email}">${c.email}</span>
-                                    </div>
-                                    <div class="flex items-center gap-3 text-slate-300">
-                                        <span class="material-symbols-outlined text-slate-500" style="font-size:16px">call</span>
-                                        <span class="text-xs font-medium">${c.phone}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `}
-        </div>
-    `;
-}
 function renderNotifications() {
+    const unread = state.notifications.filter(n => !n.read).length;
     return `
         <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-12">
             
@@ -1726,6 +1668,18 @@ function renderNotifications() {
                 <div>
                     <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Notifications</h1>
                     <p class="text-sm text-slate-400 mt-1">Updates and alerts regarding your trips and fleet</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    ${unread > 0 ? `
+                        <button onclick="handleMarkAllRead()" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-semibold rounded-xl transition-all">
+                            <span class="material-symbols-outlined" style="font-size:16px">done_all</span>
+                            Mark all read
+                        </button>
+                    ` : ''}
+                    <button onclick="loadNotificationsFromBackend().then(render)" class="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-semibold rounded-xl transition-all">
+                        <span class="material-symbols-outlined" style="font-size:16px">refresh</span>
+                        Refresh
+                    </button>
                 </div>
             </div>
 
@@ -1748,24 +1702,27 @@ function renderNotifications() {
                                 <div class="flex items-start gap-4">
                                     <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.read ? 'bg-[#090D16] text-slate-500 border border-white/5' : 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(236,91,19,0.2)]'}">
                                         <span class="material-symbols-outlined" style="font-size:20px">
-                                            ${n.text.toLowerCase().includes('status') ? 'timeline' : n.text.toLowerCase().includes('completed') ? 'check_circle' : 'notifications'}
+                                            ${n.text.toLowerCase().includes('status') ? 'timeline' : n.text.toLowerCase().includes('completed') || n.text.toLowerCase().includes('delivered') ? 'check_circle' : 'notifications'}
                                         </span>
                                     </div>
                                     <div>
                                         <p class="text-sm ${n.read ? 'text-slate-400' : 'text-white font-bold'}">${n.text}</p>
                                         <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
                                             <span class="material-symbols-outlined" style="font-size:12px">schedule</span>
-                                            ${n.time}
+                                            ${n.time ? (n.time.includes('T') ? new Date(n.time).toLocaleString() : n.time) : 'Just now'}
                                         </p>
                                     </div>
                                 </div>
                                 
-                                ${!n.read ? `
-                                    <div class="shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-center mt-2 sm:mt-0">
+                                <div class="shrink-0 flex items-center gap-3">
+                                    ${!n.read ? `
+                                        <button onclick="handleMarkRead('${n.id}')" class="text-xs font-semibold text-primary hover:text-orange-400 transition-colors flex items-center gap-1" title="Mark as read">
+                                            <span class="material-symbols-outlined" style="font-size:14px">done</span>
+                                            Mark read
+                                        </button>
                                         <span class="inline-block w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(236,91,19,0.8)]"></span>
-                                        <span class="text-[9px] uppercase font-bold text-primary tracking-wider mt-2 sm:block hidden">New</span>
-                                    </div>
-                                ` : ''}
+                                    ` : `<span class="text-xs text-slate-600 font-medium">Read</span>`}
+                                </div>
                             </div>
                         `).join('')}
                     </div>
@@ -1774,6 +1731,7 @@ function renderNotifications() {
         </div>
     `;
 }
+
 function renderSettings() {
     return `
         <div class="max-w-4xl mx-auto space-y-8 animate-fadeIn pb-12">
@@ -1862,11 +1820,39 @@ function renderSettings() {
 }
 
 // Initialize on load
+window.handleMarkRead = async function(id) {
+    try {
+        await markNotificationAsRead(id);
+        await loadNotificationsFromBackend();
+        render();
+    } catch (e) {
+        console.error('Failed to mark notification as read:', e);
+    }
+};
+
+window.handleMarkAllRead = async function() {
+    try {
+        await markAllNotificationsAsRead();
+        await loadNotificationsFromBackend();
+        render();
+    } catch (e) {
+        console.error('Failed to mark all notifications as read:', e);
+    }
+};
+
 window.addEventListener('DOMContentLoaded', () => {
+<<<<<<< HEAD
     // Clear legacy localStorage keys that may have lingering mock or unauthenticated owner state
     localStorage.removeItem('tf_user');
     localStorage.removeItem('tripflow_current_user');
     localStorage.removeItem('tripflow_token');
+=======
+    // Always clear stale localStorage notifications — backend is source of truth
+    localStorage.removeItem('tf_notifs');
+
+    const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('tripflow_token');
+    const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : state.currentUser;
+>>>>>>> 99cb0fe (Update owner and driver notification pages)
 
     const token = typeof getToken === 'function' ? getToken() : sessionStorage.getItem('tripflow_token');
     const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
