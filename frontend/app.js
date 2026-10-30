@@ -1841,30 +1841,19 @@ window.handleMarkAllRead = async function() {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
-<<<<<<< HEAD
-    // Clear legacy localStorage keys that may have lingering mock or unauthenticated owner state
-    localStorage.removeItem('tf_user');
-    localStorage.removeItem('tripflow_current_user');
-    localStorage.removeItem('tripflow_token');
-=======
     // Always clear stale localStorage notifications — backend is source of truth
     localStorage.removeItem('tf_notifs');
 
-    const token = typeof getToken === 'function' ? getToken() : localStorage.getItem('tripflow_token');
-    const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : state.currentUser;
->>>>>>> 99cb0fe (Update owner and driver notification pages)
+    const token = typeof getToken === 'function' ? getToken() : (sessionStorage.getItem('tripflow_token') || localStorage.getItem('tripflow_token'));
+    const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : (state.currentUser || null);
 
-    const token = typeof getToken === 'function' ? getToken() : sessionStorage.getItem('tripflow_token');
-    const storedUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-
-    if (token && storedUser && typeof isTokenValid === 'function' && isTokenValid(token)) {
+    if (token && storedUser && (typeof isTokenValid !== 'function' || isTokenValid(token))) {
         state.currentUser = storedUser;
         state.currentRoute = (storedUser.role || '').toLowerCase() === 'owner' ? 'dashboard' : 'driver_dashboard';
         render();
         loadTripsFromBackend();
         loadDriversFromBackend();
         if ((storedUser.role || '').toLowerCase() === 'owner') {
-            loadCustomersFromBackend();
             loadVehiclesFromBackend();
             loadNotificationsFromBackend();
         }
@@ -1873,7 +1862,9 @@ window.addEventListener('DOMContentLoaded', () => {
         state.showLogin = false;
         render();
     }
-});window.handleCreateDriver = async function (e) {
+});
+
+window.handleCreateDriver = async function (e) {
     e.preventDefault();
     const id = 'DRV-' + Math.floor(100 + Math.random() * 900);
     const pass = document.getElementById('drv_password') ? document.getElementById('drv_password').value : '';
