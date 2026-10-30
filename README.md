@@ -6,19 +6,19 @@ TripFlow is a full-stack logistics and fleet management platform providing real-
 
 ## 1. Project Architecture
 
-* **Frontend Framework:** Vanilla Modern JavaScript (ES6+), HTML5, and Tailwind CSS (CDN-based with container queries and forms plugins). Zero Node.js build dependencies required.
-* **Backend Technology:** Java 21, Spring Boot 4.1.1 (Spring MVC, Spring Data JPA, Spring Security, JWT authentication via JJWT 0.12.6, and Spring Mail).
+* **Frontend:** Vanilla Modern JavaScript (ES6+), HTML5, and Tailwind CSS (CDN-based). Deployed to Render as a high-performance **Static Site** on Render's global CDN.
+* **Backend:** Java 21, Spring Boot 4.1.1 (Spring MVC REST API, Spring Data JPA, Spring Security with stateless JWT, Spring Mail). Containerized via a multi-stage **Docker** build (`eclipse-temurin:21`) and deployed to Render as a **Web Service** (`runtime: docker`).
 * **Database Layer:**
-  * **Default (Out-of-the-Box):** Persistent embedded file database using H2 (`./data/tripflow;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1`).
-  * **Production (Render / Cloud):** Fully compatible with PostgreSQL (Render Managed PostgreSQL, Supabase, Neon, AWS RDS) via JDBC.
-  * **Schema & Seeding:** Hibernate auto-migration (`spring.jpa.hibernate.ddl-auto=update`) and automatic initial seeding (`DataSeeder.java`).
+  * **Default / Testing:** Embedded persistent H2 file database (`./data/tripflow;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1`).
+  * **Production:** Fully compatible with cloud PostgreSQL (Render Managed PostgreSQL, Supabase, Neon, AWS RDS).
+  * **Migrations & Seeding:** Hibernate auto-migration (`spring.jpa.hibernate.ddl-auto=update`) and automatic initial seeding (`DataSeeder.java`).
 
 ---
 
 ## 2. Local Development
 
 ### Prerequisites
-* JDK 21+ installed
+* JDK 21+
 * Internet access for initial Maven dependency resolution and Tailwind CDN
 
 ### Running Locally
@@ -28,11 +28,11 @@ TripFlow is a full-stack logistics and fleet management platform providing real-
    ./mvnw clean spring-boot:run
    ```
    *(On Windows: `.\mvnw.cmd clean spring-boot:run`)*
-   The backend will start on `http://localhost:8080`.
+   The backend starts on `http://localhost:8080`.
 
-2. **Access Frontend:**
-   * Option A (Embedded): Open `http://localhost:8080` in your browser.
-   * Option B (Live Server / Static): Open `frontend/index.html` using VS Code Live Server (`http://localhost:5500`).
+2. **Run Frontend:**
+   * Open `frontend/index.html` with VS Code Live Server (`http://localhost:5500`) or any static web server.
+   * `frontend/js/api.js` automatically detects `localhost` and routes API calls to `http://localhost:8080/api`.
 
 3. **Default Seed Credentials:**
    * **Owner/Admin:** Username: `owner` (or `admin`, `owner@tripflow.com`) | Password: `owner123`
@@ -40,115 +40,104 @@ TripFlow is a full-stack logistics and fleet management platform providing real-
 
 ---
 
-## 3. Deployment on Render
+## 3. Render Deployment Architecture
 
-TripFlow is optimized for deployment on [Render](https://render.com). You can deploy it using either **Model 1 (Single Web Service)** or **Model 2 (Decoupled Static Site + Web Service)**.
-
----
-
-### Model 1: Full-Stack Web Service (Recommended — Single Service)
-
-In this model, the backend builds and serves both the Spring Boot REST API and the static frontend assets from a single Render Web Service. This minimizes resource usage and eliminates cross-origin (CORS) complexity.
-
-#### Step-by-Step Render Configuration:
-1. Log in to [Render Dashboard](https://dashboard.render.com/) and click **New +** -> **Web Service**.
-2. Connect your GitHub repository containing the TripFlow source code.
-3. Configure the following service settings:
-
-| Setting | Value |
-| :--- | :--- |
-| **Name** | `tripflow-app` (or your chosen name) |
-| **Region** | Oregon, Frankfurt, or your nearest region |
-| **Branch** | `main` |
-| **Root Directory** | `backend` |
-| **Runtime** | `Java` |
-| **Build Command** | `./mvnw clean package -DskipTests` |
-| **Start Command** | `java -jar target/tripflow-backend-0.0.1-SNAPSHOT.jar` |
-| **Plan** | `Free` (or `Starter`) |
-| **Health Check Path** | `/api/test` |
-
-4. Under **Environment Variables**, add the following:
-
-| Key | Value | Purpose |
-| :--- | :--- | :--- |
-| `JAVA_VERSION` | `21` | Specifies Java 21 runtime on Render |
-| `SERVER_ADDRESS` | `0.0.0.0` | Binds server to all interfaces |
-| `JWT_SECRET` | *Click "Generate"* (or enter 32+ random characters) | Secret key for signing authentication tokens |
-| `OWNER_EMAIL` | `owner@tripflow.com` | Owner alert and notifications email |
-| `DB_URL` | *(See Database Configuration below)* | Database connection string |
-
-5. Click **Create Web Service**. Render will automatically build the application and host it on `https://<your-service-name>.onrender.com`.
+TripFlow uses Render's decoupled architecture:
+1. **`tripflow-backend` (Web Service, `runtime: docker`):**
+   * Multi-stage Docker image built from `backend/Dockerfile`.
+   * Builder stage: `eclipse-temurin:21-jdk-jammy` packages the Spring Boot JAR with layer caching.
+   * Runner stage: `eclipse-temurin:21-jre-jammy` runs as an unprivileged `spring` user.
+   * Binds to Render's dynamic `PORT` and `0.0.0.0`.
+   * Health Check: Verified via `GET /api/test` (returns HTTP 200).
+2. **`tripflow-frontend` (Static Site):**
+   * Serves static HTML/JS/CSS from `frontend/` across Render's global CDN.
+   * SPA rewrite rule routes `/*` to `/index.html`.
+   * Automatically targets `https://tripflow-backend.onrender.com/api` (configurable via `frontend/config.js` or `?api=` query parameter).
 
 ---
 
-### Model 2: Decoupled Web Service + Static Site
+## 4. Deploying via Render Blueprints (1-Click Deployment)
 
-If you prefer hosting the frontend on a Render global CDN Static Site and the backend on a Web Service:
+The repository root includes a validated Render Blueprint (`render.yaml`).
 
-1. **Deploy Backend Web Service:**
-   * Follow the steps in Model 1 above.
-   * Note down your backend URL: `https://tripflow-backend.onrender.com`.
-   * Add environment variable on backend:
-     * `CORS_ALLOWED_ORIGINS`: `https://tripflow-frontend.onrender.com,http://localhost:5500`
-
-2. **Deploy Frontend Static Site:**
-   * In `frontend/config.js`, set:
-     ```javascript
-     window.TRIPFLOW_API_URL = "https://tripflow-backend.onrender.com/api";
-     ```
-   * In Render Dashboard, click **New +** -> **Static Site**.
-   * Root Directory: `frontend`
-   * Build Command: *(Leave blank)*
-   * Publish Directory: `.`
-   * Click **Create Static Site**.
+### Step-by-Step Instructions:
+1. Push your repository changes to GitHub (once approved).
+2. Open the [Render Dashboard](https://dashboard.render.com/).
+3. Click **Blueprints** in the top navigation -> click **New Blueprint Instance**.
+4. Select your **TripFlow** repository.
+5. Render reads `render.yaml` and will display the plan:
+   * **`tripflow-backend`** (Web Service, Docker runtime, free tier, health check `/api/test`)
+   * **`tripflow-frontend`** (Static Site, free tier, SPA rewrite rules)
+6. Click **Apply**.
+7. Render will build the Docker container for the backend, deploy the frontend static site, and provide live URLs:
+   * Frontend: `https://tripflow-frontend.onrender.com`
+   * Backend: `https://tripflow-backend.onrender.com`
 
 ---
 
-### 4. Database Setup on Render
+## 5. Manual Render Deployment (Alternative)
 
-#### Option A: Persistent H2 Database (Default — Zero Setup)
-If no external database is configured, TripFlow runs with its built-in persistent H2 file database:
-```properties
-DB_URL=jdbc:h2:file:./data/tripflow;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
-```
-*Note: On Render Free tier web services without persistent disks, file database changes reset upon service restart.*
+If you prefer provisioning services manually instead of using Blueprints:
 
-#### Option B: Render Managed PostgreSQL (Production)
-1. In Render Dashboard, click **New +** -> **PostgreSQL**.
-2. Name: `tripflow-db`, Database: `tripflow`, User: `tripflow`.
-3. Once created, copy the **Internal Database URL** (e.g. `postgresql://tripflow:password@dpg-xxxx:5432/tripflow`).
-4. In your `tripflow-app` Web Service Environment Variables, configure:
-   * **`DB_URL`**: `jdbc:postgresql://<host>:5432/tripflow` (Prepend `jdbc:` to the PostgreSQL host string)
-   * **`DB_USERNAME`**: `<your-db-user>`
+### Step 1: Deploy Backend Web Service
+* Click **New +** -> **Web Service**.
+* Connect your GitHub repository.
+* Configure:
+  * **Name:** `tripflow-backend`
+  * **Root Directory:** `backend`
+  * **Runtime:** `Docker`
+  * **Dockerfile Path:** `./Dockerfile`
+  * **Docker Context:** `.`
+  * **Plan:** `Free`
+  * **Health Check Path:** `/api/test`
+* Environment Variables:
+  * `SERVER_ADDRESS`: `0.0.0.0`
+  * `JWT_SECRET`: *(Click "Generate")*
+  * `OWNER_EMAIL`: `owner@tripflow.com`
+  * `CORS_ALLOWED_ORIGINS`: `https://tripflow-frontend.onrender.com,http://localhost:5500,https://*.onrender.com`
+  * `DB_URL`: `jdbc:h2:file:./data/tripflow;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1`
+
+### Step 2: Deploy Frontend Static Site
+* Click **New +** -> **Static Site**.
+* Connect your GitHub repository.
+* Configure:
+  * **Name:** `tripflow-frontend`
+  * **Root Directory:** `frontend`
+  * **Build Command:** *(Leave blank)*
+  * **Publish Directory:** `.`
+* Add a Rewrite Rule under **Redirects/Rewrites**:
+  * Type: `Rewrite` | Source: `/*` | Destination: `/index.html`
+
+---
+
+## 6. Database Configuration & Persistence Notice
+
+### Ephemeral Storage on Render Free Tier (H2 Notice)
+On Render's Free tier, container filesystems are ephemeral. Any changes written to the local file database (`./data/tripflow.mv.db`) will be reset when the free container spins down due to inactivity or restarts.
+
+### Connecting Render Managed PostgreSQL (Production Persistence)
+For persistent data storage across restarts and deployments:
+1. In the Render Dashboard, click **New +** -> **PostgreSQL**.
+2. Name: `tripflow-postgres`, Database: `tripflow`, User: `tripflow`.
+3. Copy the **Internal Database URL** (e.g. `postgresql://tripflow:password@dpg-xxxx-a:5432/tripflow`).
+4. In `tripflow-backend` Environment Variables, configure:
+   * **`DB_URL`**: `jdbc:postgresql://<host>:5432/tripflow` *(Prepend `jdbc:` to the PostgreSQL host string)*
+   * **`DB_USERNAME`**: `tripflow`
    * **`DB_PASSWORD`**: `<your-db-password>`
-5. Deploy or redeploy. Hibernate will automatically execute table creation (`ddl-auto=update`), and `DataSeeder` will populate the initial test data on startup.
+5. Deploy or redeploy. Hibernate automatically creates all tables (`spring.jpa.hibernate.ddl-auto=update`), and `DataSeeder` inserts initial seed data.
 
 ---
 
-### 5. Automated 1-Click Deployment (Render Blueprints)
+## 7. Environment Variables Reference
 
-TripFlow includes a pre-configured `render.yaml` Blueprint file in the repository root.
-1. In Render Dashboard, click **Blueprints** -> **New Blueprint Instance**.
-2. Select your TripFlow repository.
-3. Render reads `render.yaml` and provisions the Web Service with the correct build and start commands automatically.
-
----
-
-## 6. Environment Variables Reference
-
-| Variable Name | Required | Default / Example | Description |
-| :--- | :--- | :--- | :--- |
-| `PORT` | Auto (Render) | `8080` | Port assigned dynamically by Render |
-| `SERVER_ADDRESS` | Optional | `0.0.0.0` | IP binding address |
-| `JAVA_VERSION` | Yes | `21` | Java version for the Render build environment |
-| `DB_URL` | Optional | `jdbc:h2:file:./data/tripflow;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1` | JDBC URL for H2 or PostgreSQL |
-| `DB_USERNAME` | Optional | `sa` | Database user |
-| `DB_PASSWORD` | Optional | *(empty)* | Database password |
-| `DB_DRIVER` | Optional | *(auto-detected)* | JDBC driver class name |
-| `JWT_SECRET` | Recommended | `TripFlowSecureSuperSecretKey...` | Cryptographic secret for JWT signing |
-| `OWNER_EMAIL` | Optional | `owner@tripflow.com` | Primary owner notification email |
-| `SMTP_HOST` | Optional | `smtp.example.com` | Outgoing mail server (if email notifications enabled) |
-| `SMTP_PORT` | Optional | `587` | Outgoing mail port |
-| `SMTP_USERNAME` | Optional | *(empty)* | SMTP login username |
-| `SMTP_PASSWORD` | Optional | *(empty)* | SMTP login password |
-| `CORS_ALLOWED_ORIGINS` | Optional | `http://localhost:5500,https://*.onrender.com` | Comma-separated allowed origins |
+| Variable Name | Required | Service | Default / Value | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `PORT` | Auto (Render) | Backend | `8080` | Dynamic port assigned by Render container environment |
+| `SERVER_ADDRESS` | Recommended | Backend | `0.0.0.0` | IP binding address |
+| `JWT_SECRET` | Recommended | Backend | *(Render Generated)* | Secret key for signing and verifying JWT tokens |
+| `OWNER_EMAIL` | Optional | Backend | `owner@tripflow.com` | Owner notifications recipient email |
+| `CORS_ALLOWED_ORIGINS` | Recommended | Backend | `https://*.onrender.com,http://localhost:5500` | Allowed origins for cross-origin frontend requests |
+| `DB_URL` | Optional | Backend | `jdbc:h2:file:./data/tripflow;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1` | JDBC URL for H2 or cloud PostgreSQL |
+| `DB_USERNAME` | Optional | Backend | `sa` | Database user credentials |
+| `DB_PASSWORD` | Optional | Backend | *(empty)* | Database password credentials |
+| `SMTP_HOST` / `SMTP_PORT` | Optional | Backend | `smtp.example.com` / `587` | Outgoing email configuration (if email alerts are used) |

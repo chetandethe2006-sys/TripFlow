@@ -8,16 +8,36 @@
 // 3. Defaults to 'http://localhost:8080/api' for local development
 const API_BASE_URL = (function () {
     if (typeof window !== "undefined") {
-        if (window.TRIPFLOW_API_URL && typeof window.TRIPFLOW_API_URL === "string") {
+        // 1. Localhost always defaults to local backend unless query override is given
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryApi = urlParams.get("api");
+            return queryApi ? queryApi.replace(/\/$/, "") : "http://localhost:8080/api";
+        }
+
+        // 2. Explicit query parameter override (e.g. ?api=https://my-backend.onrender.com/api)
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryApi = urlParams.get("api");
+            if (queryApi) {
+                localStorage.setItem("tripflow_api_url", queryApi);
+                return queryApi.replace(/\/$/, "");
+            }
+        } catch (e) {}
+
+        // 3. Stored localStorage URL
+        const storedApi = localStorage.getItem("tripflow_api_url");
+        if (storedApi) {
+            return storedApi.replace(/\/$/, "");
+        }
+
+        // 4. Explicit window.TRIPFLOW_API_URL from config.js
+        if (window.TRIPFLOW_API_URL && typeof window.TRIPFLOW_API_URL === "string" && window.TRIPFLOW_API_URL.trim() !== "") {
             return window.TRIPFLOW_API_URL.replace(/\/$/, "");
         }
-        if (window.__API_BASE_URL__ && typeof window.__API_BASE_URL__ === "string") {
-            return window.__API_BASE_URL__.replace(/\/$/, "");
-        }
-        // If served from a remote host (e.g. *.onrender.com or custom domain)
-        if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-            return `${window.location.origin}/api`;
-        }
+
+        // 5. Default fallback for Render production
+        return "https://tripflow-backend.onrender.com/api";
     }
     return "http://localhost:8080/api";
 })();
