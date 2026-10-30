@@ -2,7 +2,25 @@
 // TripFlow - API Configuration & Common API
 // ============================================
 
-const API_BASE_URL = "http://localhost:8080/api";
+// Resolves API Base URL:
+// 1. window.TRIPFLOW_API_URL if set (e.g., in config.js or by deployment script)
+// 2. Relative '/api' if hosted on Render or remote host without custom API URL
+// 3. Defaults to 'http://localhost:8080/api' for local development
+const API_BASE_URL = (function () {
+    if (typeof window !== "undefined") {
+        if (window.TRIPFLOW_API_URL && typeof window.TRIPFLOW_API_URL === "string") {
+            return window.TRIPFLOW_API_URL.replace(/\/$/, "");
+        }
+        if (window.__API_BASE_URL__ && typeof window.__API_BASE_URL__ === "string") {
+            return window.__API_BASE_URL__.replace(/\/$/, "");
+        }
+        // If served from a remote host (e.g. *.onrender.com or custom domain)
+        if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+            return `${window.location.origin}/api`;
+        }
+    }
+    return "http://localhost:8080/api";
+})();
 
 function getAuthHeaders(extraHeaders = {}) {
     const headers = { ...extraHeaders };

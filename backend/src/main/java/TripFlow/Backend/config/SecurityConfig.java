@@ -49,7 +49,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/api/auth/**", "/api/test", "/h2-console/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/test", "/h2-console/**",
+                                         "/", "/index.html", "/style.css", "/config.js", "/app.js",
+                                         "/js/**", "/assets/**", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Owner-only Admin Operations
