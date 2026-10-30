@@ -14,7 +14,7 @@ public class EmailNotificationService {
     @Value("${tripflow.owner.email:owner@tripflow.com}")
     private String ownerEmail;
     
-    @Value("${spring.mail.username:}")
+    @Value("${spring.mail.from:tripflownotify@gmail.com}")
     private String fromEmail;
 
     public EmailNotificationService(JavaMailSender mailSender) {
