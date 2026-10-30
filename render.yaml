@@ -37,21 +37,19 @@ services:
   # ----------------------------------------------------------------------------
   # 2. Frontend Static Site (HTML5 / Tailwind CSS / Vanilla JS)
   # ----------------------------------------------------------------------------
-  - type: static
+  - 
+  # Frontend Static Site
+  - type: web
     name: tripflow-frontend
-    plan: free
-    region: oregon
+    runtime: static
     rootDir: frontend
     buildCommand: ""
-    publishDir: "."
+    staticPublishPath: .
     routes:
       - type: rewrite
-        source: "/*"
-        destination: "/index.html"
-    headers:
-      - path: "/*"
-        name: "Access-Control-Allow-Origin"
-        value: "*"
+        source: /*
+        destination: /index.html
+
 
 # ------------------------------------------------------------------------------
 # Optional: Render Managed PostgreSQL Database (Free tier available)
