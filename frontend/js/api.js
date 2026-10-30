@@ -37,7 +37,7 @@ const API_BASE_URL = (function () {
         }
 
         // 5. Default fallback for Render production
-        return "https://tripflow-backend.onrender.com/api";
+        return "https://tripflow-backend-wp1y.onrender.com/api";
     }
     return "http://localhost:8080/api";
 })();
