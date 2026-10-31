@@ -40,8 +40,8 @@ RUN chown -R spring:spring /app
 USER spring:spring
 
 # Render provides the PORT environment variable dynamically (e.g. 10000)
-ENV PORT=8080
+ENV PORT=10000
 ENV SERVER_ADDRESS=0.0.0.0
-EXPOSE 8080
+EXPOSE 10000
 
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
